@@ -1,0 +1,18 @@
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Map /uploads/ to /public/uploads/ for static files
+    RewriteRule ^uploads/(.*)$ public/uploads/$1 [L]
+
+    # Map /assets/ to /public/assets/ for static files
+    RewriteRule ^assets/(.*)$ public/assets/$1 [L]
+
+    # Route root request to public/index.php
+    RewriteRule ^$ public/index.php [L]
+
+    # Forward all non-existing files/directories to public/index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . public/index.php [L]
+</IfModule>

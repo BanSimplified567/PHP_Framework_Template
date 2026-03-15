@@ -42,7 +42,7 @@ PHP_Framecore is a simple PHP framework designed for small to medium-sized web a
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repository-url>
+    git clone https://github.com/BanSimplified567/PHP_Framecore.git
     cd PHP_Framecore
     ```
 
