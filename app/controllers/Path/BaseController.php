@@ -1,5 +1,5 @@
 <?php
-// app/controllers/BaseController.php
+// app/Controllers/BaseController.php
 class BaseController
 {
   protected $pdo;
@@ -38,11 +38,11 @@ class BaseController
     // Make controller available to views
     $controller = $this;
 
-    include BASE_PATH . '/app/views/layout/sidebar.php';
+    include BASE_PATH . '/app/Views/layout/sidebar.php';
 
 
     // View
-    $viewPath = BASE_PATH . '/app/views/' . $view . '.php';
+    $viewPath = BASE_PATH . '/app/Views/' . $view . '.php';
     if (file_exists($viewPath)) {
       include $viewPath;
     } else {
@@ -50,7 +50,7 @@ class BaseController
     }
 
     // Global footer scripts
-    include BASE_PATH . '/app/views/layout/base-footer.php';
+    include BASE_PATH . '/app/Views/layout/base-footer.php';
   }
 
   protected function redirect($action, $params = [])

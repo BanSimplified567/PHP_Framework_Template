@@ -1,10 +1,10 @@
 <?php
-// app/controllers/DashboardController.php
+// app/Controllers/DashboardController.php
 require_once __DIR__ . '/Path/BaseController.php';
 
 class DashboardController extends BaseController
 {
-  // app/controllers/DashboardController.php
+  // app/Controllers/DashboardController.php
   public function index()
   {
     $this->requireLogin('admin');

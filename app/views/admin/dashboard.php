@@ -1,5 +1,5 @@
 <?php
-// app/views/admin/dashboard.php
+// app/Views/admin/dashboard.php
 ?>
 
 <div class="container-fluid px-4">

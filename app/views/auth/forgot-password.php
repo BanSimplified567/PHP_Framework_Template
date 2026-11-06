@@ -1,688 +1,749 @@
 <?php
-// app/views/auth/forgot-password.php
-$step = isset($_SESSION['reset_step']) ? $_SESSION['reset_step'] : 1;
-$questions = isset($_SESSION['security_questions']) ? $_SESSION['security_questions'] : [];
+// app/Views/auth/forgot-password.php
+$step = isset($_SESSION['reset_step']) ? (int) $_SESSION['reset_step'] : 1;
+$questions = isset($_SESSION['security_questions']) && is_array($_SESSION['security_questions']) ? $_SESSION['security_questions'] : [];
 $first_name = $_SESSION['reset_first_name'] ?? '';
 $last_name = $_SESSION['reset_last_name'] ?? '';
+$progress = ($step <= 1) ? '33%' : (($step == 2) ? '66%' : '100%');
 ?>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<!DOCTYPE html>
+<html lang="en">
 
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    background: url('assets/bfcloansbackground.png') center/cover fixed;
-    font-family: 'Segoe UI', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  /* Main Container */
-  .forgot-password-container {
-    max-width: 1000px;
-    width: 100%;
-    height: 650px;
-    border-radius: 1rem;
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
-    background: white;
-    display: flex;
-    overflow: hidden;
-  }
-
-  /* Left Column - Fixed */
-  .left-container {
-    width: 35%;
-    background: linear-gradient(135deg, #149004cb 0%, #0f7000cb 100%);
-    color: white;
-    padding: 2rem 1.5rem;
-    overflow-y: auto;
-  }
-
-  /* Right Column - Scrollable */
-  .right-container {
-    width: 65%;
-    background: white;
-    padding: 1.5rem;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Custom scrollbar */
-  .right-container::-webkit-scrollbar,
-  .left-container::-webkit-scrollbar {
-    width: 5px;
-  }
-
-  .right-container::-webkit-scrollbar-track,
-  .left-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-
-  .right-container::-webkit-scrollbar-thumb {
-    background: #149004cb;
-    border-radius: 5px;
-  }
-
-  .left-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 5px;
-  }
-
-  /* Logo */
-  .logo-circle {
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    border: 2px solid #fcd116;
-    overflow: hidden;
-  }
-
-  .logo-circle img {
-    width: 80%;
-    height: auto;
-  }
-
-  /* Feature Items - Compact */
-  .feature-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 0.5rem;
-    margin-bottom: 0.6rem;
-    font-size: 0.85rem;
-  }
-
-  .feature-icon {
-    color: #fcd116;
-    font-size: 1rem;
-  }
-
-  /* Progress Steps - Compact */
-  .progress-steps {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
-  .progress-step {
-    text-align: center;
-    flex: 1;
-  }
-
-  .step-number {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #e9ecef;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin: 0 auto 0.2rem;
-  }
-
-  .step-number.active {
-    background: #149004cb;
-    color: white;
-  }
-
-  .step-number.completed {
-    background: #4CAF50;
-    color: white;
-  }
-
-  .step-label {
-    font-size: 0.65rem;
-    color: #6c757d;
-  }
-
-  .step-label.active-label {
-    color: #149004cb;
-    font-weight: 600;
-  }
-
-  .progress {
-    height: 4px;
-    margin-bottom: 1rem;
-    background: #e9ecef;
-  }
-
-  .progress-bar {
-    background: linear-gradient(90deg, #149004cb 0%, #4CAF50 100%);
-  }
-
-  /* Forms - Compact */
-  .form-label {
-    font-weight: 600;
-    color: #0f7000cb;
-    font-size: 0.75rem;
-    margin-bottom: 0.2rem;
-  }
-
-  .input-group {
-    border: 1px solid #dee2e6;
-    border-radius: 0.5rem;
-    overflow: hidden;
-  }
-
-  .input-group-text {
-    background: #f8f9fa;
-    border: none;
-    color: #149004cb;
-    padding: 0.4rem 0.75rem;
-  }
-
-  .form-control {
-    border: none;
-    padding: 0.4rem 0.75rem;
-    font-size: 0.85rem;
-  }
-
-  /* Question Box - Compact */
-  .question-box {
-    background: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    margin-bottom: 0.75rem;
-    border-left: 3px solid #149004cb;
-  }
-
-  .question-number {
-    display: inline-flex;
-    width: 20px;
-    height: 20px;
-    background: #149004cb;
-    color: white;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    margin-right: 0.4rem;
-  }
-
-  /* Buttons - Compact */
-  .btn {
-    padding: 0.4rem 1.2rem;
-    font-size: 0.85rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, #149004cb 0%, #0f7000cb 100%);
-    border: none;
-    color: white;
-  }
-
-  .btn-outline-primary {
-    border: 1px solid #149004cb;
-    color: #149004cb;
-    background: white;
-  }
-
-  .btn-success {
-    background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
-    border: none;
-    color: white;
-  }
-
-  .button-group {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 1rem;
-  }
-
-  /* Alerts - Compact */
-  .alert-patriotic-error,
-  .alert-patriotic-success {
-    padding: 0.6rem 1rem;
-    border-radius: 0.5rem;
-    margin-bottom: 0.75rem;
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .alert-patriotic-error {
-    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-    color: #721c24;
-    border-left: 3px solid #dc3545;
-  }
-
-  .alert-patriotic-success {
-    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    color: #155724;
-    border-left: 3px solid #4CAF50;
-  }
-
-  /* Step Content */
-  .step-icon {
-    text-align: center;
-    margin-bottom: 0.5rem;
-  }
-
-  .step-icon i {
-    font-size: 2rem;
-    color: #149004cb;
-    background: #f0f9f0;
-    padding: 0.75rem;
-    border-radius: 50%;
-  }
-
-  .step-content h3 {
-    font-size: 1.1rem;
-    color: #0f7000cb;
-    margin-bottom: 0.25rem;
-    font-weight: 600;
-    text-align: center;
-  }
-
-  .step-description {
-    color: #6c757d;
-    font-size: 0.75rem;
-    margin-bottom: 1rem;
-    text-align: center;
-  }
-
-  /* Password Requirements - Compact */
-  .password-requirements {
-    background: #f8f9fa;
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    margin-top: 0.5rem;
-  }
-
-  .requirements-title {
-    font-weight: 600;
-    color: #0f7000cb;
-    margin-bottom: 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .password-requirements ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.3rem;
-  }
-
-  .requirement {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    color: #6c757d;
-    font-size: 0.7rem;
-  }
-
-  .requirement.valid {
-    color: #4CAF50;
-  }
-
-  .requirement i {
-    font-size: 0.6rem;
-  }
-
-  /* Password Match */
-  .password-match {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.4rem;
-    padding: 0.4rem 0.75rem;
-    border-radius: 0.5rem;
-    font-size: 0.7rem;
-    background: #f8d7da;
-    color: #dc3545;
-  }
-
-  .password-match.valid {
-    background: #d4edda;
-    color: #4CAF50;
-  }
-
-  /* Toggle Password */
-  .toggle-password {
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #6c757d;
-    cursor: pointer;
-    padding: 0.2rem;
-    z-index: 10;
-  }
-
-  .password-input {
-    position: relative;
-  }
-
-  /* Footer - Compact */
-  .forgot-password-footer {
-    margin-top: 1rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid #e9ecef;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-  }
-
-  .security-notice,
-  .admin-support {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.6rem;
-    background: #f8f9fa;
-    border-radius: 0.5rem;
-    border-left: 3px solid #149004cb;
-  }
-
-  .admin-support {
-    border-left-color: #fcd116;
-  }
-
-  .security-notice i,
-  .admin-support i {
-    font-size: 1rem;
-    color: #149004cb;
-  }
-
-  .admin-support i {
-    color: #fcd116;
-  }
-
-  .security-notice strong,
-  .admin-support strong {
-    display: block;
-    font-size: 0.75rem;
-    margin-bottom: 0.2rem;
-  }
-
-  .security-notice p,
-  .admin-support p {
-    font-size: 0.65rem;
-    line-height: 1.3;
-    margin: 0;
-    color: #6b7280;
-  }
-
-  .admin-support a {
-    color: #149004cb;
-    text-decoration: none;
-    font-size: 0.65rem;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .forgot-password-container {
-      flex-direction: column;
-      height: auto;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account recovery - PHP Framecore</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fc-accent: #54e5c7;
+      --fc-accent-hover: #3dd4b4;
+      --fc-accent-soft: rgba(84, 229, 199, 0.14);
+      --fc-accent-ring: rgba(84, 229, 199, 0.35);
+      --fc-dark: #2b2e33;
+      --fc-dark-soft: #3a3e45;
+      --fc-text: #2b2e33;
+      --fc-muted: #6b7280;
+      --fc-border: #e5e7eb;
+      --fc-bg: #f3f4f6;
+      --fc-surface: #ffffff;
+      --bs-primary: var(--fc-accent);
+      --bs-primary-rgb: 84, 229, 199;
+      --bs-body-font-family: "Inter", system-ui, -apple-system, sans-serif;
+      --bs-body-color: var(--fc-text);
+      --bs-border-color: var(--fc-border);
     }
 
-    .left-container,
-    .right-container {
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background-color: var(--fc-bg);
+      background-image:
+        radial-gradient(ellipse 70% 45% at 15% 10%, rgba(84, 229, 199, 0.1), transparent),
+        linear-gradient(180deg, #f3f4f6 0%, #e9ecef 100%);
+    }
+
+    .auth-shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .auth-wrapper {
       width: 100%;
+      max-width: 1040px;
+      display: grid;
+      grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: stretch;
     }
 
-    .right-container {
-      max-height: 500px;
+    .auth-panel {
+      background: var(--fc-surface);
+      border: 1px solid rgba(229, 231, 235, 0.95);
+      border-radius: 1.25rem;
+      box-shadow:
+        0 1px 2px rgba(43, 46, 51, 0.04),
+        0 12px 36px -14px rgba(43, 46, 51, 0.14);
     }
 
-    .forgot-password-footer {
-      grid-template-columns: 1fr;
-    }
-
-    .button-group {
+    .auth-brand {
+      background: linear-gradient(160deg, var(--fc-dark) 0%, #23262b 55%, #1d2024 100%);
+      color: #fff;
+      padding: 2.25rem;
+      display: flex;
       flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+      position: relative;
+      overflow: hidden;
     }
-  }
-</style>
 
-<div class="forgot-password-container">
-  <!-- Left Column - Fixed Info -->
-  <div class="left-container">
-    <div class="text-center">
-      <div class="logo-circle">
-        <img src="assets/bfcloans.png" alt="BUENAMENTE">
-      </div>
-      <h5 class="text-white mb-1 fw-bold">BUENAMENTE</h5>
-      <p class="text-white small mb-3 opacity-75">Faculty Recovery</p>
+    .auth-brand::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -35% auto;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(84, 229, 199, 0.18), transparent 65%);
+      pointer-events: none;
+    }
 
-      <div class="mt-3">
-        <div class="feature-item">
-          <i class="bi bi-shield-check feature-icon"></i>
-          <span class="text-white small">Secure Recovery</span>
+    .brand-top,
+    .brand-bottom {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .brand-mark {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 0.85rem;
+      background: rgba(84, 229, 199, 0.14);
+      color: var(--fc-accent);
+      border: 1px solid rgba(84, 229, 199, 0.22);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .brand-tag {
+      font-size: 0.8125rem;
+      color: rgba(255, 255, 255, 0.62);
+    }
+
+    .brand-headline {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin: 0 0 0.5rem;
+      color: #fff;
+    }
+
+    .brand-copy {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.9rem;
+    }
+
+    .recovery-steps {
+      display: grid;
+      gap: 0.625rem;
+      margin-top: 1.75rem;
+    }
+
+    .recovery-step {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 0.875rem;
+    }
+
+    .recovery-step.is-active {
+      border-color: rgba(84, 229, 199, 0.3);
+      background: rgba(84, 229, 199, 0.1);
+      color: #fff;
+    }
+
+    .recovery-step.is-done {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .step-dot {
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.75);
+      flex-shrink: 0;
+    }
+
+    .recovery-step.is-active .step-dot {
+      background: var(--fc-accent);
+      color: var(--fc-dark);
+    }
+
+    .recovery-step.is-done .step-dot {
+      background: rgba(84, 229, 199, 0.2);
+      color: var(--fc-accent);
+    }
+
+    .auth-form {
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 4rem);
+      overflow-y: auto;
+    }
+
+    @media (min-width: 576px) {
+      .auth-form {
+        padding: 2.25rem 2.5rem;
+      }
+    }
+
+    .auth-header {
+      margin-bottom: 1.25rem;
+    }
+
+    .auth-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin: 0 0 0.375rem;
+      color: var(--fc-dark);
+    }
+
+    .auth-header p {
+      margin: 0;
+      font-size: 0.9375rem;
+      color: var(--fc-muted);
+    }
+
+    .progress-track {
+      height: 6px;
+      background: #eef2f7;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 1.25rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--fc-dark) 0%, var(--fc-accent) 100%);
+      border-radius: 999px;
+      transition: width 0.2s ease;
+    }
+
+    .form-label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--fc-text);
+      margin-bottom: 0.375rem;
+    }
+
+    .form-control {
+      height: 2.75rem;
+      padding: 0.625rem 0.875rem;
+      font-size: 0.9375rem;
+      border-radius: 0.75rem;
+      border-color: var(--fc-border);
+      background-color: #fff;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .form-control::placeholder {
+      color: #94a3b8;
+    }
+
+    .form-control:focus {
+      border-color: var(--fc-accent);
+      box-shadow: 0 0 0 4px var(--fc-accent-ring);
+    }
+
+    .input-icon-wrap {
+      position: relative;
+    }
+
+    .input-icon-wrap .form-control {
+      padding-left: 2.625rem;
+    }
+
+    .input-icon-wrap .form-control.has-toggle {
+      padding-right: 2.75rem;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 1rem;
+      pointer-events: none;
+      transition: color 0.15s ease;
+    }
+
+    .input-icon-wrap:focus-within .input-icon {
+      color: var(--fc-dark);
+    }
+
+    .btn-toggle-password {
+      position: absolute;
+      right: 0.375rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #94a3b8;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .btn-toggle-password:hover {
+      color: var(--fc-muted);
+      background: #f1f5f9;
+    }
+
+    .question-card {
+      border: 1px solid var(--fc-border);
+      border-radius: 0.9rem;
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.75rem;
+      background: #fcfcfd;
+    }
+
+    .question-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--fc-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .question-badge {
+      width: 1.35rem;
+      height: 1.35rem;
+      border-radius: 999px;
+      background: var(--fc-dark);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    .question-text {
+      font-size: 0.9375rem;
+      color: var(--fc-text);
+      margin: 0 0 0.65rem;
+      line-height: 1.4;
+    }
+
+    .btn-primary-fc {
+      height: 2.75rem;
+      border: 0;
+      border-radius: 0.75rem;
+      background: var(--fc-dark);
+      color: #fff;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      padding: 0 1.1rem;
+      transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-primary-fc:hover {
+      background: var(--fc-dark-soft);
+      color: #fff;
+    }
+
+    .btn-primary-fc:focus {
+      box-shadow: 0 0 0 4px rgba(43, 46, 51, 0.2);
+      color: #fff;
+    }
+
+    .btn-primary-fc:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-outline-fc {
+      height: 2.75rem;
+      border: 1px solid var(--fc-border);
+      border-radius: 0.75rem;
+      background: #fff;
+      color: var(--fc-text);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      padding: 0 1.1rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-outline-fc:hover {
+      border-color: #cfd6e0;
+      background: #f8fafc;
+      color: var(--fc-text);
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .actions > * {
+      flex: 1;
+    }
+
+    .alert-fc {
+      border: 0;
+      border-radius: 0.75rem;
+      padding: 0.75rem 0.875rem;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+
+    .alert-fc-danger {
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .alert-fc-success {
+      background: rgba(84, 229, 199, 0.12);
+      color: #1f6f5e;
+      border: 1px solid rgba(84, 229, 199, 0.35);
+    }
+
+    .alert-fc i {
+      opacity: 0.9;
+    }
+
+    .requirements {
+      border: 1px solid var(--fc-border);
+      border-radius: 0.85rem;
+      padding: 0.85rem 1rem;
+      margin-top: 0.75rem;
+      background: #fafbfc;
+    }
+
+    .requirements-title {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fc-text);
+      margin-bottom: 0.5rem;
+    }
+
+    .requirements-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.35rem 0.75rem;
+    }
+
+    .requirement {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8125rem;
+      color: var(--fc-muted);
+    }
+
+    .requirement.valid {
+      color: #0f766e;
+    }
+
+    .requirement i {
+      font-size: 0.75rem;
+      color: #cbd5e1;
+    }
+
+    .requirement.valid i {
+      color: var(--fc-accent-hover);
+    }
+
+    .match-status {
+      margin-top: 0.6rem;
+      font-size: 0.8125rem;
+      border-radius: 0.65rem;
+      padding: 0.55rem 0.75rem;
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .match-status.is-error {
+      display: flex;
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .match-status.is-valid {
+      display: flex;
+      background: rgba(84, 229, 199, 0.12);
+      color: #1f6f5e;
+    }
+
+    .auth-footer {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--fc-border);
+      font-size: 0.8125rem;
+      color: var(--fc-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .auth-footer a {
+      color: var(--fc-dark);
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    @media (max-width: 991.98px) {
+      .auth-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 560px;
+      }
+
+      .auth-brand {
+        padding: 1.75rem;
+      }
+
+      .auth-form {
+        max-height: none;
+      }
+
+      .requirements-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="auth-shell">
+    <div class="auth-wrapper">
+      <section class="auth-panel auth-brand" aria-label="Account recovery">
+        <div class="brand-top">
+          <div class="brand">
+            <div class="brand-mark" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
+            <div>
+              <div class="brand-name">PHP Framecore</div>
+              <div class="brand-tag">Account recovery</div>
+            </div>
+          </div>
+
+          <h2 class="brand-headline">Verify your identity and regain access.</h2>
+          <p class="brand-copy">Recovery uses your security answers. All attempts are logged for account protection.</p>
         </div>
-        <div class="feature-item">
-          <i class="bi bi-key feature-icon"></i>
-          <span class="text-white small">Identity Verification</span>
+
+        <div class="brand-bottom">
+          <div class="recovery-steps" aria-label="Recovery progress">
+            <div class="recovery-step <?php echo $step == 1 ? 'is-active' : ($step > 1 ? 'is-done' : ''); ?>">
+              <span class="step-dot"><?php echo $step > 1 ? '<i class="bi bi-check"></i>' : '1'; ?></span>
+              <span>Security verification</span>
+            </div>
+            <div class="recovery-step <?php echo $step == 2 ? 'is-active' : ($step > 2 ? 'is-done' : ''); ?>">
+              <span class="step-dot"><?php echo $step > 2 ? '<i class="bi bi-check"></i>' : '2'; ?></span>
+              <span>Recovery options</span>
+            </div>
+            <div class="recovery-step <?php echo $step >= 3 ? 'is-active' : ''; ?>">
+              <span class="step-dot">3</span>
+              <span>Set new password</span>
+            </div>
+          </div>
         </div>
-        <div class="feature-item">
-          <i class="bi bi-lock feature-icon"></i>
-          <span class="text-white small">SSL Encrypted</span>
+      </section>
+
+      <main class="auth-panel auth-form" aria-labelledby="auth-title">
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" style="width: <?php echo htmlspecialchars($progress); ?>;"></div>
         </div>
-      </div>
+
+        <?php if (isset($_SESSION['error'])): ?>
+          <div class="alert-fc alert-fc-danger d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-exclamation-circle mt-1" aria-hidden="true"></i>
+            <div><?php echo htmlspecialchars($_SESSION['error']);
+                  unset($_SESSION['error']); ?></div>
+          </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['success'])): ?>
+          <div class="alert-fc alert-fc-success d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-check-circle mt-1" aria-hidden="true"></i>
+            <div><?php echo htmlspecialchars($_SESSION['success']);
+                  unset($_SESSION['success']); ?></div>
+          </div>
+        <?php endif; ?>
+
+        <?php if ($step == 1): ?>
+          <header class="auth-header">
+            <h1 id="auth-title">Security verification</h1>
+            <p>Answer your security questions to confirm your identity.</p>
+          </header>
+
+          <form method="POST" action="index.php?action=forgot-password" id="securityForm">
+            <?php if (empty($questions)): ?>
+              <div class="alert-fc alert-fc-danger d-flex align-items-start gap-2" role="alert">
+                <i class="bi bi-exclamation-circle mt-1" aria-hidden="true"></i>
+                <div>Security questions could not be loaded. Please try again or return to sign in.</div>
+              </div>
+              <div class="actions">
+                <a href="index.php?action=login" class="btn-primary-fc" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Back to sign in</a>
+              </div>
+            <?php else: ?>
+              <?php foreach ($questions as $index => $question): ?>
+                <?php $qNum = $index + 1; ?>
+                <div class="question-card">
+                  <div class="question-meta">
+                    <span class="question-badge"><?php echo $qNum; ?></span>
+                    <span>Question <?php echo $qNum; ?></span>
+                  </div>
+                  <input type="hidden" name="question_id_<?php echo $qNum; ?>" value="<?php echo htmlspecialchars((string) ($question['id'] ?? '')); ?>">
+                  <p class="question-text"><?php echo htmlspecialchars($question['question'] ?? ''); ?></p>
+                  <div class="input-icon-wrap">
+                    <i class="bi bi-chat-left-text input-icon" aria-hidden="true"></i>
+                    <input type="text" class="form-control" name="answer_<?php echo $qNum; ?>"
+                      placeholder="Your answer" autocomplete="off" required <?php echo $index === 0 ? 'autofocus' : ''; ?>>
+                  </div>
+                </div>
+              <?php endforeach; ?>
+
+              <div class="actions">
+                <a href="index.php?action=login" class="btn-outline-fc">Cancel</a>
+                <button type="submit" class="btn-primary-fc">Verify answers</button>
+              </div>
+            <?php endif; ?>
+          </form>
+
+        <?php elseif ($step == 3): ?>
+          <header class="auth-header">
+            <h1 id="auth-title">Create a new password</h1>
+            <p>Choose a strong password for your account<?php echo ($first_name || $last_name) ? ', ' . htmlspecialchars(trim($first_name . ' ' . $last_name)) : ''; ?>.</p>
+          </header>
+
+          <form method="POST" action="index.php?action=reset-password" id="passwordResetForm" novalidate>
+            <div class="mb-3">
+              <label for="new_password" class="form-label">New password</label>
+              <div class="input-icon-wrap">
+                <i class="bi bi-lock input-icon" aria-hidden="true"></i>
+                <input type="password" class="form-control has-toggle" id="new_password" name="password"
+                  placeholder="Enter a new password" autocomplete="new-password" required minlength="8">
+                <button type="button" class="btn-toggle-password" data-target="new_password" aria-label="Show password">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+
+              <div class="requirements" aria-label="Password requirements">
+                <div class="requirements-title">Password requirements</div>
+                <div class="requirements-grid">
+                  <div class="requirement" data-rule="length"><i class="bi bi-circle-fill"></i><span>8+ characters</span></div>
+                  <div class="requirement" data-rule="uppercase"><i class="bi bi-circle-fill"></i><span>Uppercase letter</span></div>
+                  <div class="requirement" data-rule="lowercase"><i class="bi bi-circle-fill"></i><span>Lowercase letter</span></div>
+                  <div class="requirement" data-rule="number"><i class="bi bi-circle-fill"></i><span>Number</span></div>
+                  <div class="requirement" data-rule="special"><i class="bi bi-circle-fill"></i><span>Special character</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-1">
+              <label for="confirm_password" class="form-label">Confirm password</label>
+              <div class="input-icon-wrap">
+                <i class="bi bi-shield-check input-icon" aria-hidden="true"></i>
+                <input type="password" class="form-control has-toggle" id="confirm_password" name="confirm_password"
+                  placeholder="Re-enter your new password" autocomplete="new-password" required>
+                <button type="button" class="btn-toggle-password" data-target="confirm_password" aria-label="Show password">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div class="match-status" id="passwordMatchIndicator" aria-live="polite"></div>
+            </div>
+
+            <div class="actions">
+              <a href="index.php?action=reset-options" class="btn-outline-fc">Back</a>
+              <button type="submit" class="btn-primary-fc" id="resetPasswordBtn" disabled>Reset password</button>
+            </div>
+          </form>
+
+        <?php else: ?>
+          <header class="auth-header">
+            <h1 id="auth-title">Continue recovery</h1>
+            <p>Your verification is in progress. Continue to choose a recovery option.</p>
+          </header>
+          <div class="actions">
+            <a href="index.php?action=reset-options" class="btn-primary-fc" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Continue</a>
+            <a href="index.php?action=login" class="btn-outline-fc">Cancel</a>
+          </div>
+        <?php endif; ?>
+
+        <div class="auth-footer">
+          <span>Remembered your password?</span>
+          <a href="index.php?action=login">Back to sign in</a>
+        </div>
+      </main>
     </div>
   </div>
 
-  <!-- Right Column - Scrollable Content -->
-  <div class="right-container">
-    <!-- Progress -->
-    <div class="mb-2">
-      <div class="progress">
-        <div class="progress-bar" style="width: <?php echo ($step == 1) ? '33%' : (($step == 2) ? '66%' : '100%'); ?>;"></div>
-      </div>
-      <div class="progress-steps">
-        <div class="progress-step">
-          <div class="step-number <?php echo $step >= 1 ? 'active' : ''; ?> <?php echo $step > 1 ? 'completed' : ''; ?>">1</div>
-          <small class="step-label <?php echo $step == 1 ? 'active-label' : ''; ?>">Security</small>
-        </div>
-        <div class="progress-step">
-          <div class="step-number <?php echo $step >= 2 ? 'active' : ''; ?> <?php echo $step > 2 ? 'completed' : ''; ?>">2</div>
-          <small class="step-label <?php echo $step == 2 ? 'active-label' : ''; ?>">Options</small>
-        </div>
-        <div class="progress-step">
-          <div class="step-number <?php echo $step >= 3 ? 'active' : ''; ?>">3</div>
-          <small class="step-label <?php echo $step == 3 ? 'active-label' : ''; ?>">Reset</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Alerts -->
-    <?php if (isset($_SESSION['error'])): ?>
-      <div class="alert-patriotic-error">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <span><?php echo htmlspecialchars($_SESSION['error']);
-              unset($_SESSION['error']); ?></span>
-      </div>
-    <?php endif; ?>
-
-    <?php if (isset($_SESSION['success'])): ?>
-      <div class="alert-patriotic-success">
-        <i class="bi bi-check-circle-fill"></i>
-        <span><?php echo htmlspecialchars($_SESSION['success']);
-              unset($_SESSION['success']); ?></span>
-      </div>
-    <?php endif; ?>
-
-    <!-- Step 1: Security Questions -->
-    <?php if ($step == 1): ?>
-      <div class="step-content">
-        <div class="step-icon">
-          <i class="bi bi-shield-lock"></i>
-        </div>
-        <h3>Security Verification</h3>
-        <p class="step-description">Answer 5 questions to verify identity</p>
-
-        <form method="POST" action="index.php?action=forgot-password">
-          <?php if (empty($questions)): ?>
-            <div class="alert-patriotic-error">
-              <i class="bi bi-exclamation-triangle-fill"></i> System error: Unable to load questions
-            </div>
-            <div class="button-group">
-              <a href="index.php?action=login" class="btn btn-primary w-100">Back to Login</a>
-            </div>
-          <?php else: ?>
-            <?php foreach ($questions as $index => $question): ?>
-              <?php $qNum = $index + 1; ?>
-              <div class="question-box">
-                <div class="d-flex align-items-center mb-2">
-                  <span class="question-number"><?php echo $qNum; ?></span>
-                  <span class="small fw-semibold" style="color: #0f7000cb;">Q<?php echo $qNum; ?></span>
-                </div>
-                <input type="hidden" name="question_id_<?php echo $qNum; ?>" value="<?php echo $question['id']; ?>">
-                <div class="mb-2">
-                  <div class="p-2 bg-white rounded border small">
-                    <i class="bi bi-question-circle-fill me-1" style="color: #149004cb;"></i>
-                    <?php echo htmlspecialchars($question['question']); ?>
-                  </div>
-                </div>
-                <div>
-                  <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
-                    <input type="text" class="form-control" name="answer_<?php echo $qNum; ?>" placeholder="Your answer" required <?php echo $index == 0 ? 'autofocus' : ''; ?>>
-                  </div>
-                </div>
-              </div>
-            <?php endforeach; ?>
-
-            <div class="button-group">
-              <a href="index.php?action=login" class="btn btn-outline-primary">Cancel</a>
-              <button type="submit" class="btn btn-primary">Verify</button>
-            </div>
-          <?php endif; ?>
-        </form>
-      </div>
-
-      <!-- Step 3: Set New Password -->
-    <?php elseif ($step == 3): ?>
-      <div class="step-content">
-        <div class="step-icon">
-          <i class="bi bi-lock"></i>
-        </div>
-        <h3>Create New Password</h3>
-        <p class="step-description">Choose a strong password for your account</p>
-
-        <form method="POST" action="index.php?action=reset-password" id="passwordResetForm">
-          <div class="mb-2">
-            <label class="form-label">New Password</label>
-            <div class="password-input">
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
-                <input type="password" class="form-control" id="new_password" name="password" placeholder="New password" required minlength="8">
-                <button type="button" class="toggle-password" data-target="new_password">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </div>
-            </div>
-
-            <div class="password-requirements">
-              <div class="requirements-title">Requirements:</div>
-              <ul>
-                <li class="requirement" data-rule="length"><i class="bi bi-circle"></i> 8+ chars</li>
-                <li class="requirement" data-rule="uppercase"><i class="bi bi-circle"></i> Uppercase</li>
-                <li class="requirement" data-rule="lowercase"><i class="bi bi-circle"></i> Lowercase</li>
-                <li class="requirement" data-rule="number"><i class="bi bi-circle"></i> Number</li>
-                <li class="requirement" data-rule="special"><i class="bi bi-circle"></i> Special</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="mb-2">
-            <label class="form-label">Confirm Password</label>
-            <div class="password-input">
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
-                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm password" required>
-                <button type="button" class="toggle-password" data-target="confirm_password">
-                  <i class="bi bi-eye"></i>
-                </button>
-              </div>
-            </div>
-            <div class="password-match" id="passwordMatchIndicator" style="display: none;">
-              <i class="bi bi-x-circle"></i> <span>Passwords do not match</span>
-            </div>
-          </div>
-
-          <div class="button-group">
-            <a href="index.php?action=reset-options" class="btn btn-outline-primary">Back</a>
-            <button type="submit" class="btn btn-success" id="resetPasswordBtn" disabled>Reset</button>
-          </div>
-        </form>
-      </div>
-    <?php endif; ?>
-
-    <!-- Footer -->
-    <div class="forgot-password-footer">
-      <div class="security-notice">
-        <i class="bi bi-shield-check"></i>
-        <div>
-          <strong>Security Notice</strong>
-          <p>All attempts are logged for security</p>
-        </div>
-      </div>
-      <div class="admin-support">
-        <i class="bi bi-headset"></i>
-        <div>
-          <strong>Need Help?</strong>
-          <p><a href="mailto:support@institution.edu">Contact Support</a></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Toggle password visibility
-    document.querySelectorAll('.toggle-password').forEach(button => {
-      button.addEventListener('click', function() {
-        const input = document.getElementById(this.dataset.target);
-        const icon = this.querySelector('i');
-        if (input.type === 'password') {
-          input.type = 'text';
-          icon.classList.replace('bi-eye', 'bi-eye-slash');
-        } else {
-          input.type = 'password';
-          icon.classList.replace('bi-eye-slash', 'bi-eye');
-        }
+  <script>
+    (function () {
+      document.querySelectorAll('.btn-toggle-password').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var targetId = button.getAttribute('data-target');
+          var input = targetId ? document.getElementById(targetId) : null;
+          var icon = button.querySelector('i');
+          if (!input) return;
+          var show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+          if (icon) icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
       });
-    });
 
-    // Password validation for step 3
-    const passwordForm = document.getElementById('passwordResetForm');
-    if (passwordForm) {
-      const newPassword = document.getElementById('new_password');
-      const confirmPassword = document.getElementById('confirm_password');
-      const matchIndicator = document.getElementById('passwordMatchIndicator');
-      const submitBtn = document.getElementById('resetPasswordBtn');
-      const requirements = document.querySelectorAll('.requirement');
+      var passwordForm = document.getElementById('passwordResetForm');
+      if (passwordForm) {
+        var newPassword = document.getElementById('new_password');
+        var confirmPassword = document.getElementById('confirm_password');
+        var matchIndicator = document.getElementById('passwordMatchIndicator');
+        var submitBtn = document.getElementById('resetPasswordBtn');
+        var requirements = document.querySelectorAll('.requirement');
 
-      function validatePassword() {
-        const password = newPassword?.value || '';
-        let allChecksPassed = true;
-
-        if (password.length > 0) {
-          const checks = {
+        function validatePassword() {
+          var password = newPassword ? newPassword.value : '';
+          var allChecksPassed = password.length > 0;
+          var checks = {
             length: password.length >= 8,
             uppercase: /[A-Z]/.test(password),
             lowercase: /[a-z]/.test(password),
@@ -690,53 +751,48 @@ $last_name = $_SESSION['reset_last_name'] ?? '';
             special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
           };
 
-          requirements.forEach(req => {
-            const rule = req.dataset.rule;
-            const icon = req.querySelector('i');
-            if (checks[rule]) {
-              req.classList.add('valid');
-              icon.className = 'bi bi-check-circle-fill';
-            } else {
-              req.classList.remove('valid');
-              icon.className = 'bi bi-circle';
-              allChecksPassed = false;
-            }
+          requirements.forEach(function (req) {
+            var rule = req.getAttribute('data-rule');
+            var ok = !!checks[rule];
+            req.classList.toggle('valid', ok);
+            if (!ok) allChecksPassed = false;
           });
-        } else {
-          allChecksPassed = false;
+          if (password.length === 0) allChecksPassed = false;
+
+          if (confirmPassword && confirmPassword.value) {
+            var match = password === confirmPassword.value && allChecksPassed;
+            matchIndicator.className = 'match-status ' + (match ? 'is-valid' : 'is-error');
+            matchIndicator.innerHTML = match
+              ? '<i class="bi bi-check-circle" aria-hidden="true"></i><span>Passwords match</span>'
+              : '<i class="bi bi-exclamation-circle" aria-hidden="true"></i><span>Passwords do not match</span>';
+            if (submitBtn) submitBtn.disabled = !match;
+          } else if (matchIndicator) {
+            matchIndicator.className = 'match-status';
+            matchIndicator.innerHTML = '';
+            if (submitBtn) submitBtn.disabled = true;
+          }
         }
 
-        if (confirmPassword?.value) {
-          matchIndicator.style.display = 'flex';
-          const match = password === confirmPassword.value && password.length >= 8 && allChecksPassed;
-          if (match) {
-            matchIndicator.className = 'password-match valid';
-            matchIndicator.innerHTML = '<i class="bi bi-check-circle-fill"></i> <span>Passwords match</span>';
-          } else {
-            matchIndicator.className = 'password-match';
-            matchIndicator.innerHTML = '<i class="bi bi-exclamation-circle"></i> <span>Passwords do not match</span>';
-          }
-          if (submitBtn) submitBtn.disabled = !match;
-        } else {
-          matchIndicator.style.display = 'none';
-          if (submitBtn) submitBtn.disabled = true;
-        }
+        if (newPassword) newPassword.addEventListener('input', validatePassword);
+        if (confirmPassword) confirmPassword.addEventListener('input', validatePassword);
+        validatePassword();
       }
 
-      newPassword?.addEventListener('input', validatePassword);
-      confirmPassword?.addEventListener('input', validatePassword);
-      validatePassword();
-    }
-
-    // Loading state on form submit
-    document.querySelectorAll('form').forEach(form => {
-      form.addEventListener('submit', function() {
-        const btn = this.querySelector('button[type="submit"]');
-        if (btn && !btn.disabled) {
-          btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Processing...';
-          btn.disabled = true;
-        }
+      document.querySelectorAll('form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+          var btn = form.querySelector('button[type="submit"]');
+          if (btn && btn.disabled) {
+            e.preventDefault();
+            return;
+          }
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+          }
+        });
       });
-    });
-  });
-</script>
+    }());
+  </script>
+</body>
+
+</html>

@@ -73,7 +73,7 @@ $allRoutes = [
 // Special handling for logout
 if ($action === 'logout') {
   if (isset($_SESSION['user_id'])) {
-    require_once "../app/controllers/Auth/AuthController.php";
+    require_once "../app/Controllers/Auth/AuthController.php";
     $controller = new AuthController($pdo);
     $controller->logout();
   } else {
@@ -161,7 +161,7 @@ if ($routeHandler) {
     $routeHandler();
   } else {
     list($controllerPath, $method) = explode('@', $routeHandler);
-    $controllerFile = "../app/controllers/{$controllerPath}.php";
+    $controllerFile = "../app/Controllers/{$controllerPath}.php";
 
     if (file_exists($controllerFile)) {
       require_once $controllerFile;
@@ -207,5 +207,5 @@ if ($routeHandler) {
   }
 } else {
   http_response_code(404);
-  require_once '../app/views/errors/404.php';
+  require_once '../app/Views/errors/404.php';
 }

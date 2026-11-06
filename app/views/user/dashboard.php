@@ -1,5 +1,5 @@
 <?php
-// app/views/customer/dashboard.php
+// app/Views/customer/dashboard.php
 // Note: $user, $upcomingReservations, $pastReservations, $loyaltyInfo, $availableRooms, $stats, $page_title are passed from controller
 ?>
 
@@ -63,7 +63,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Left Column: Upcoming Reservations -->
-    <div class="lg:col-span-2"> 
+    <div class="lg:col-span-2">
       <!-- Upcoming Reservations -->
       <div class="bg-white rounded-xl shadow-md p-6 mb-6">
         <div class="flex justify-between items-center mb-6">

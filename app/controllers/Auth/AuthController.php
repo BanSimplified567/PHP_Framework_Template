@@ -1,5 +1,5 @@
 <?php
-// app/controllers/Auth/AuthController.php
+// app/Controllers/Auth/AuthController.php
 require_once __DIR__ . '/../Path/BaseController.php';
 
 class AuthController extends BaseController
@@ -23,7 +23,7 @@ class AuthController extends BaseController
 
   public function showLoginForm()
   {
-    require_once '../app/views/auth/login.php';
+    require_once '../app/Views/auth/login.php';
   }
 
   private function handleLogin()
@@ -367,7 +367,7 @@ class AuthController extends BaseController
       $_SESSION['security_questions'] = $questions;
       $_SESSION['reset_step'] = 1; // Step 1: Answer questions
 
-      require_once '../app/views/auth/forgot-password.php';
+      require_once '../app/Views/auth/forgot-password.php';
     } catch (PDOException $e) {
       error_log("Show security questions error: " . $e->getMessage());
       $_SESSION['error'] = "System error. Please try again.";
@@ -490,7 +490,7 @@ class AuthController extends BaseController
       $this->handleResetOptions();
     } else {
       $_SESSION['reset_step'] = 2;
-      require_once '../app/views/auth/reset-options.php';
+      require_once '../app/Views/auth/reset-options.php';
     }
   }
 
@@ -544,7 +544,7 @@ class AuthController extends BaseController
       $this->handleResetPassword();
     } else {
       $_SESSION['reset_step'] = 3;
-      require_once '../app/views/auth/forgot-password.php';
+      require_once '../app/Views/auth/forgot-password.php';
     }
   }
 
@@ -655,7 +655,7 @@ class AuthController extends BaseController
       $this->handleResetEmail();
     } else {
       $_SESSION['reset_step'] = 4;
-      require_once '../app/views/auth/reset-email.php';
+      require_once '../app/Views/auth/reset-email.php';
     }
   }
 
@@ -757,7 +757,7 @@ class AuthController extends BaseController
       $_SESSION['security_questions'] = [];
     }
 
-    require_once '../app/views/auth/register.php';
+    require_once '../app/Views/auth/register.php';
   }
 
   private function notifyAdminOfNewRegistration($firstName, $lastName, $email, $role)

@@ -1,5 +1,5 @@
 <?php
-// app/views/layout/sidebar.php
+// app/Views/layout/sidebar.php
 // Dynamic sidebar that shows content based on user role
 $userRole = $_SESSION['role'] ?? '';
 $firstName = htmlspecialchars($_SESSION['first_name'] ?? $_SESSION['username'] ?? 'User');

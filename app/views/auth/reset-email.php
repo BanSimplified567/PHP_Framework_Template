@@ -1,5 +1,5 @@
 <?php
-// app/views/auth/reset-email.php
+// app/Views/auth/reset-email.php
 $first_name = $_SESSION['reset_first_name'] ?? '';
 $last_name = $_SESSION['reset_last_name'] ?? '';
 $email = $_SESSION['reset_email'] ?? '';
