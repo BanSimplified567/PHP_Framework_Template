@@ -9,6 +9,10 @@ require_once '../config/load_env.php';
 require_once '../config/app.php';
 require_once '../config/dbconn.php';
 
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+  require_once __DIR__ . '/../vendor/autoload.php';
+}
+
 // Get action
 $action = $_GET['action'] ?? '';
 
@@ -43,7 +47,8 @@ $allRoutes = [
     'reset-options' => 'Auth/AuthController@resetOptions',
     'reset-password' => 'Auth/AuthController@resetPassword',
     'reset-email' => 'Auth/AuthController@resetEmail',
-    'register' => 'Auth/AuthController@register'
+    'register' => 'Auth/AuthController@register',
+    'register-gmail' => 'Auth/AuthController@registerGmail'
   ],
 
   // ==================== ADMIN ROUTES ====================

@@ -1,6 +1,9 @@
 <?php
 // app/Controllers/Auth/AuthController.php
 require_once __DIR__ . '/../Path/BaseController.php';
+if (file_exists(__DIR__ . '/../../services/MailService.php')) {
+  require_once __DIR__ . '/../../services/MailService.php';
+}
 
 class AuthController extends BaseController
 {
@@ -300,8 +303,11 @@ class AuthController extends BaseController
         // Send notification to admin
         $this->notifyAdminOfNewRegistration($first_name, $last_name, $email, $role);
 
+        // Send confirmation email to the registered user
+        $this->sendRegistrationEmail($email, trim($first_name . ' ' . $last_name), $role);
+
         // Set success message
-        $_SESSION['success'] = "Account created successfully! You can now log in with your credentials.";
+        $_SESSION['success'] = "Account created successfully! A confirmation email was sent if mail is configured. You can now log in with your credentials.";
         $this->redirect('login');
       } catch (PDOException $e) {
         $this->pdo->rollBack();
@@ -330,7 +336,7 @@ class AuthController extends BaseController
   }
 
   // ==============================
-  // FORGOT PASSWORD FUNCTIONALITY - STEP 1: DISPLAY 5 QUESTIONS
+  // FORGOT PASSWORD - EMAIL CODE (PHPMailer)
   // ==============================
   public function forgotPassword()
   {
@@ -340,126 +346,153 @@ class AuthController extends BaseController
     }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-      $this->handleSecurityAnswersVerification();
-    } else {
-      $this->showSecurityQuestionsForm();
-    }
-  }
-
-  /**
-   * Show the 5 security questions form (Step 1)
-   */
-  private function showSecurityQuestionsForm()
-  {
-    try {
-      // Get 5 security questions from the database
-      $stmt = $this->pdo->prepare("
-                SELECT id, question
-                FROM secret_questions
-                WHERE is_active = 1
-                ORDER BY id
-                LIMIT 5
-            ");
-      $stmt->execute();
-      $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-      // Store questions in session for the view
-      $_SESSION['security_questions'] = $questions;
-      $_SESSION['reset_step'] = 1; // Step 1: Answer questions
-
-      require_once '../app/Views/auth/forgot-password.php';
-    } catch (PDOException $e) {
-      error_log("Show security questions error: " . $e->getMessage());
-      $_SESSION['error'] = "System error. Please try again.";
-      $this->redirect('login');
-    }
-  }
-
-  /**
-   * Handle security answers verification
-   * Find user by matching all 5 answers
-   */
-  private function handleSecurityAnswersVerification()
-  {
-    // Get all posted answers
-    $answers = [];
-    $question_ids = [];
-
-    // Collect answers and question IDs from form
-    for ($i = 1; $i <= 5; $i++) {
-      if (isset($_POST['answer_' . $i]) && !empty(trim($_POST['answer_' . $i]))) {
-        $answers[$i] = trim($_POST['answer_' . $i]);
-        $question_ids[$i] = (int)($_POST['question_id_' . $i] ?? 0);
+      $intent = $_POST['intent'] ?? 'request_code';
+      if ($intent === 'verify_code') {
+        $this->handleForgotPasswordCodeVerification();
+      } elseif ($intent === 'resend_code') {
+        $this->handleForgotPasswordCodeRequest(true);
       } else {
-        $_SESSION['error'] = "Please answer all 5 security questions.";
+        $this->handleForgotPasswordCodeRequest(false);
+      }
+    } else {
+      $this->showForgotPasswordForm();
+    }
+  }
+
+  private function showForgotPasswordForm()
+  {
+    if (!isset($_SESSION['reset_step']) || (int)$_SESSION['reset_step'] < 1 || (int)$_SESSION['reset_step'] > 2) {
+      $_SESSION['reset_step'] = 1;
+    }
+    require_once '../app/Views/auth/forgot-password.php';
+  }
+
+  private function handleForgotPasswordCodeRequest(bool $resend = false)
+  {
+    $email = trim($_POST['email'] ?? ($_SESSION['reset_email'] ?? ''));
+    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      $_SESSION['error'] = 'Please enter a valid email address.';
+      $_SESSION['reset_step'] = 1;
+      $this->redirect('forgot-password');
+      return;
+    }
+
+    try {
+      $stmt = $this->pdo->prepare('SELECT id, email, first_name, last_name, is_active FROM users WHERE email = ? LIMIT 1');
+      $stmt->execute([$email]);
+      $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      $genericSuccess = 'If an account matches that email, a verification code has been sent.';
+
+      if (!$user || (int)($user['is_active'] ?? 0) !== 1) {
+        unset($_SESSION['reset_user_id'], $_SESSION['reset_email'], $_SESSION['reset_first_name'], $_SESSION['reset_last_name'], $_SESSION['reset_code_sent'], $_SESSION['questions_verified']);
+        $_SESSION['reset_step'] = 1;
+        $_SESSION['success'] = $genericSuccess;
+        $this->logAction('Password reset code requested for non-existent/inactive email: ' . $email);
         $this->redirect('forgot-password');
         return;
       }
-    }
 
-    try {
-      // Find user by matching all 5 answers
-      $user = $this->findUserByAllSecurityAnswers($answers, $question_ids);
+      $code = (string) random_int(100000, 999999);
+      $tokenHash = password_hash($code, PASSWORD_DEFAULT);
+      $expiresAt = (new DateTime('+15 minutes'))->format('Y-m-d H:i:s');
 
-      if ($user) {
-        // User verified - store user info
-        $_SESSION['reset_user_id'] = $user['id'];
-        $_SESSION['reset_email'] = $user['email'];
-        $_SESSION['reset_first_name'] = $user['first_name'];
-        $_SESSION['reset_last_name'] = $user['last_name'];
-        $_SESSION['questions_verified'] = true;
-        $_SESSION['reset_step'] = 2; // Step 2: Choose reset option
+      $stmt = $this->pdo->prepare('UPDATE users SET reset_token = ?, reset_expires = ? WHERE id = ?');
+      $stmt->execute([$tokenHash, $expiresAt, $user['id']]);
 
-        // Log successful verification
-        $this->logAction("Security questions verified successfully for user: " . $user['email']);
+      $name = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
+      $sent = $this->sendPasswordResetCodeEmail($user['email'], $name, $code, 15);
 
-        // Redirect to reset options page
-        $this->redirect('reset-options');
-      } else {
-        $_SESSION['error'] = "Security answers do not match any user in our system. Please try again.";
+      if (!$sent) {
+        $_SESSION['error'] = 'Unable to send the verification code email right now. Please check mail configuration and try again.';
+        $_SESSION['reset_step'] = 1;
+        $this->logAction('Password reset code email failed for: ' . $user['email']);
         $this->redirect('forgot-password');
+        return;
       }
-    } catch (PDOException $e) {
-      error_log("Security answers verification error: " . $e->getMessage());
-      $_SESSION['error'] = "System error. Please try again.";
+
+      $_SESSION['reset_user_id'] = $user['id'];
+      $_SESSION['reset_email'] = $user['email'];
+      $_SESSION['reset_first_name'] = $user['first_name'] ?? '';
+      $_SESSION['reset_last_name'] = $user['last_name'] ?? '';
+      $_SESSION['reset_code_sent'] = true;
+      $_SESSION['questions_verified'] = false;
+      $_SESSION['reset_step'] = 2;
+
+      $this->logAction(($resend ? 'Password reset code resent to: ' : 'Password reset code sent to: ') . $user['email']);
+      $_SESSION['success'] = 'A verification code was sent to your email. Enter it below to continue.';
+      $this->redirect('forgot-password');
+    } catch (Exception $e) {
+      error_log('Forgot password code request error: ' . $e->getMessage());
+      $_SESSION['error'] = 'System error. Please try again.';
+      $_SESSION['reset_step'] = 1;
       $this->redirect('forgot-password');
     }
   }
 
-  /**
-   * Find user by matching all 5 security answers
-   */
-  private function findUserByAllSecurityAnswers($answers, $question_ids)
+  private function handleForgotPasswordCodeVerification()
   {
-    // Build a query to find users who have all 5 answers matching
-    $sql = "
-            SELECT u.id, u.email, u.first_name, u.last_name
-            FROM users u
-            WHERE u.is_active = 1
-            AND u.secret_question_setup = 1
-        ";
+    $code = preg_replace('/\D+/', '', (string)($_POST['verification_code'] ?? ''));
+    $userId = (int)($_SESSION['reset_user_id'] ?? 0);
 
-    $params = [];
-
-    // Join conditions for each answer
-    for ($i = 1; $i <= 5; $i++) {
-      $sql .= "
-                AND EXISTS (
-                    SELECT 1 FROM user_secret_questions usq{$i}
-                    WHERE usq{$i}.user_id = u.id
-                    AND usq{$i}.question_id = :question_id_{$i}
-                    AND LOWER(usq{$i}.answer) = LOWER(:answer_{$i})
-                )
-            ";
-      $params[':question_id_' . $i] = $question_ids[$i];
-      $params[':answer_' . $i] = $answers[$i];
+    if ($userId <= 0 || empty($_SESSION['reset_code_sent'])) {
+      $_SESSION['error'] = 'Please request a verification code first.';
+      $_SESSION['reset_step'] = 1;
+      $this->redirect('forgot-password');
+      return;
     }
 
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute($params);
+    if (!preg_match('/^\d{6}$/', $code)) {
+      $_SESSION['error'] = 'Please enter the 6-digit verification code sent to your email.';
+      $_SESSION['reset_step'] = 2;
+      $this->redirect('forgot-password');
+      return;
+    }
 
-    // Return the first user found (if any)
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+    try {
+      $stmt = $this->pdo->prepare('SELECT id, email, first_name, last_name, reset_token, reset_expires, is_active FROM users WHERE id = ? LIMIT 1');
+      $stmt->execute([$userId]);
+      $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+      if (!$user || (int)($user['is_active'] ?? 0) !== 1 || empty($user['reset_token']) || empty($user['reset_expires'])) {
+        $_SESSION['error'] = 'Verification session is invalid or expired. Please request a new code.';
+        $_SESSION['reset_step'] = 1;
+        $this->redirect('forgot-password');
+        return;
+      }
+
+      if (strtotime((string)$user['reset_expires']) < time()) {
+        $stmt = $this->pdo->prepare('UPDATE users SET reset_token = NULL, reset_expires = NULL WHERE id = ?');
+        $stmt->execute([$userId]);
+        $_SESSION['error'] = 'That verification code has expired. Please request a new code.';
+        $_SESSION['reset_step'] = 1;
+        $this->redirect('forgot-password');
+        return;
+      }
+
+      if (!password_verify($code, (string)$user['reset_token'])) {
+        $_SESSION['error'] = 'Invalid verification code. Please try again.';
+        $_SESSION['reset_step'] = 2;
+        $this->logAction('Invalid password reset code entered for: ' . ($user['email'] ?? $userId));
+        $this->redirect('forgot-password');
+        return;
+      }
+
+      $_SESSION['reset_user_id'] = $user['id'];
+      $_SESSION['reset_email'] = $user['email'];
+      $_SESSION['reset_first_name'] = $user['first_name'] ?? '';
+      $_SESSION['reset_last_name'] = $user['last_name'] ?? '';
+      $_SESSION['questions_verified'] = true;
+      $_SESSION['reset_step'] = 2;
+      $_SESSION['success'] = 'Email verified. Choose what you want to reset.';
+      $this->logAction('Password reset code verified for: ' . $user['email']);
+      $this->redirect('reset-options');
+    } catch (Exception $e) {
+      error_log('Forgot password code verification error: ' . $e->getMessage());
+      $_SESSION['error'] = 'System error. Please try again.';
+      $_SESSION['reset_step'] = 2;
+      $this->redirect('forgot-password');
+    }
   }
 
   // ==============================
@@ -730,6 +763,7 @@ class AuthController extends BaseController
     unset($_SESSION['reset_step']);
     unset($_SESSION['questions_verified']);
     unset($_SESSION['security_questions']);
+    unset($_SESSION['reset_code_sent']);
     unset($_SESSION['old']);
   }
 
@@ -964,6 +998,131 @@ class AuthController extends BaseController
       $stmt->execute([$userId]);
     } catch (PDOException $e) {
       error_log("Failed to reset failed attempts for user $userId: " . $e->getMessage());
+    }
+  }
+
+  public function registerGmail()
+  {
+    if (isset($_SESSION['user_id'])) {
+      $this->redirectToDashboard();
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      $this->redirect('login');
+    }
+
+    $email = trim((string)($_POST['gmail_email'] ?? ''));
+    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      $_SESSION['error'] = 'Please enter a valid Gmail address to create an account.';
+      $this->redirect('login');
+    }
+
+    $domain = strtolower((string)substr(strrchr($email, '@') ?: '', 1));
+    $allowed = ['gmail.com', 'googlemail.com'];
+    if (!in_array($domain, $allowed, true)) {
+      $_SESSION['error'] = 'Please use a valid Gmail address (gmail.com or googlemail.com).';
+      $this->redirect('login');
+    }
+
+    try {
+      $stmt = $this->pdo->prepare('SELECT id, is_active FROM users WHERE email = ? LIMIT 1');
+      $stmt->execute([$email]);
+      $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+      if ($existing && (int)($existing['is_active'] ?? 0) === 1) {
+        $_SESSION['error'] = 'An account with that Gmail address already exists. Please sign in or use forgot password.';
+        $this->redirect('login');
+      }
+
+      $registerUrl = $this->buildAbsoluteUrl('index.php?action=register&email=' . urlencode($email));
+      $sent = $this->sendGmailRegistrationInviteEmail($email, $registerUrl);
+
+      if (!$sent) {
+        $_SESSION['error'] = 'Unable to send the Gmail registration email right now. Please check mail configuration (PHPMailer/Gmail SMTP) and try again.';
+        $this->redirect('login');
+      }
+
+      $_SESSION['success'] = 'A registration link has been sent to your Gmail address via PHPMailer. Open your email to continue creating your account.';
+      $this->logAction('Gmail registration invite sent to: ' . $email);
+      $this->redirect('login');
+    } catch (Exception $e) {
+      error_log('Gmail registration invite error: ' . $e->getMessage());
+      $_SESSION['error'] = 'System error. Please try again.';
+      $this->redirect('login');
+    }
+  }
+
+  private function sendGmailRegistrationInviteEmail(string $email, string $registerUrl): bool
+  {
+    if (!class_exists('MailService', false) && file_exists(__DIR__ . '/../../services/MailService.php')) {
+      require_once __DIR__ . '/../../services/MailService.php';
+    }
+    if (!class_exists('MailService')) {
+      $this->logAction('Gmail registration invite skipped: MailService unavailable for ' . $email);
+      return false;
+    }
+
+    try {
+      $mailer = new MailService();
+      return $mailer->sendGmailRegistrationInvite($email, $registerUrl, 30);
+    } catch (Exception $e) {
+      error_log('Gmail registration invite email error: ' . $e->getMessage());
+      $this->logAction('Gmail registration invite email failed for ' . $email);
+      return false;
+    }
+  }
+
+  private function buildAbsoluteUrl(string $path): string
+  {
+    $base = (string)(function_exists('env') ? env('APP_URL', '') : ($_ENV['APP_URL'] ?? ''));
+    $base = rtrim($base, '/');
+    $path = '/' . ltrim($path, '/');
+    if ($base !== '') {
+      return $base . $path;
+    }
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $script = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+    $script = rtrim($script, '/');
+    return $scheme . '://' . $host . $script . $path;
+  }
+
+  private function sendPasswordResetCodeEmail(string $email, string $name, string $code, int $minutesValid = 15): bool
+  {
+    if (!class_exists('MailService', false) && file_exists(__DIR__ . '/../../services/MailService.php')) {
+      require_once __DIR__ . '/../../services/MailService.php';
+    }
+    if (!class_exists('MailService')) {
+      $this->logAction('Password reset code email skipped: MailService unavailable for ' . $email);
+      return false;
+    }
+
+    try {
+      $mailer = new MailService();
+      return $mailer->sendPasswordResetCode($email, $name !== '' ? $name : $email, $code, $minutesValid);
+    } catch (Exception $e) {
+      error_log('Password reset code email error: ' . $e->getMessage());
+      $this->logAction('Password reset code email failed for ' . $email);
+      return false;
+    }
+  }
+
+  private function sendRegistrationEmail(string $email, string $name, string $role): void
+  {
+    if (!class_exists('MailService', false) && file_exists(__DIR__ . '/../../services/MailService.php')) {
+      require_once __DIR__ . '/../../services/MailService.php';
+    }
+    if (!class_exists('MailService')) {
+      $this->logAction('Registration email skipped: MailService unavailable for ' . $email);
+      return;
+    }
+
+    try {
+      $mailer = new MailService();
+      $sent = $mailer->sendRegistrationWelcome($email, $name !== '' ? $name : $email, $role);
+      $this->logAction(($sent ? 'Registration confirmation email sent to ' : 'Registration confirmation email not sent to ') . $email);
+    } catch (Exception $e) {
+      error_log('Registration email error: ' . $e->getMessage());
+      $this->logAction('Registration confirmation email failed for ' . $email);
     }
   }
 }

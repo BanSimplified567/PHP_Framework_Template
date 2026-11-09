@@ -1,10 +1,12 @@
 <?php
 // app/Views/auth/forgot-password.php
 $step = isset($_SESSION['reset_step']) ? (int) $_SESSION['reset_step'] : 1;
-$questions = isset($_SESSION['security_questions']) && is_array($_SESSION['security_questions']) ? $_SESSION['security_questions'] : [];
+$codeSent = !empty($_SESSION['reset_code_sent']);
+$verified = !empty($_SESSION['questions_verified']);
+$resetEmail = (string) ($_SESSION['reset_email'] ?? ($_POST['email'] ?? ''));
 $first_name = $_SESSION['reset_first_name'] ?? '';
 $last_name = $_SESSION['reset_last_name'] ?? '';
-$progress = ($step <= 1) ? '33%' : (($step == 2) ? '66%' : '100%');
+$progress = $verified ? '100%' : ($codeSent || $step >= 2 ? '66%' : '33%');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -567,22 +569,22 @@ $progress = ($step <= 1) ? '33%' : (($step == 2) ? '66%' : '100%');
           </div>
 
           <h2 class="brand-headline">Verify your identity and regain access.</h2>
-          <p class="brand-copy">Recovery uses your security answers. All attempts are logged for account protection.</p>
+          <p class="brand-copy">Recovery now uses an email verification code sent via PHPMailer (Gmail). All attempts are logged for account protection.</p>
         </div>
 
         <div class="brand-bottom">
           <div class="recovery-steps" aria-label="Recovery progress">
-            <div class="recovery-step <?php echo $step == 1 ? 'is-active' : ($step > 1 ? 'is-done' : ''); ?>">
-              <span class="step-dot"><?php echo $step > 1 ? '<i class="bi bi-check"></i>' : '1'; ?></span>
-              <span>Security verification</span>
+            <div class="recovery-step <?php echo (!$codeSent && !$verified) ? 'is-active' : (($codeSent || $verified) ? 'is-done' : ''); ?>">
+              <span class="step-dot"><?php echo ($codeSent || $verified) ? '<i class="bi bi-check"></i>' : '1'; ?></span>
+              <span>Enter email</span>
             </div>
-            <div class="recovery-step <?php echo $step == 2 ? 'is-active' : ($step > 2 ? 'is-done' : ''); ?>">
-              <span class="step-dot"><?php echo $step > 2 ? '<i class="bi bi-check"></i>' : '2'; ?></span>
-              <span>Recovery options</span>
+            <div class="recovery-step <?php echo ($codeSent && !$verified) ? 'is-active' : ($verified ? 'is-done' : ''); ?>">
+              <span class="step-dot"><?php echo $verified ? '<i class="bi bi-check"></i>' : '2'; ?></span>
+              <span>Verify code</span>
             </div>
-            <div class="recovery-step <?php echo $step >= 3 ? 'is-active' : ''; ?>">
+            <div class="recovery-step <?php echo $verified ? 'is-active' : ''; ?>">
               <span class="step-dot">3</span>
-              <span>Set new password</span>
+              <span>Reset account</span>
             </div>
           </div>
         </div>
@@ -609,44 +611,62 @@ $progress = ($step <= 1) ? '33%' : (($step == 2) ? '66%' : '100%');
           </div>
         <?php endif; ?>
 
-        <?php if ($step == 1): ?>
+        <?php if ($step == 1 || !$codeSent): ?>
           <header class="auth-header">
-            <h1 id="auth-title">Security verification</h1>
-            <p>Answer your security questions to confirm your identity.</p>
+            <h1 id="auth-title">Forgot password</h1>
+            <p>Enter your account email and we’ll send a verification code using Gmail/PHPMailer.</p>
           </header>
 
-          <form method="POST" action="index.php?action=forgot-password" id="securityForm">
-            <?php if (empty($questions)): ?>
-              <div class="alert-fc alert-fc-danger d-flex align-items-start gap-2" role="alert">
-                <i class="bi bi-exclamation-circle mt-1" aria-hidden="true"></i>
-                <div>Security questions could not be loaded. Please try again or return to sign in.</div>
+          <form method="POST" action="index.php?action=forgot-password" id="emailCodeRequestForm" novalidate>
+            <input type="hidden" name="intent" value="request_code">
+            <div class="question-card" style="margin-bottom:0;">
+              <div class="question-meta">
+                <span class="question-badge"><i class="bi bi-envelope"></i></span>
+                <span>Email address</span>
               </div>
-              <div class="actions">
-                <a href="index.php?action=login" class="btn-primary-fc" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Back to sign in</a>
+              <div class="input-icon-wrap">
+                <i class="bi bi-envelope input-icon" aria-hidden="true"></i>
+                <input type="email" class="form-control" id="reset_email" name="email"
+                  value="<?php echo htmlspecialchars($resetEmail, ENT_QUOTES, 'UTF-8'); ?>"
+                  placeholder="name@example.com" autocomplete="email" required autofocus>
               </div>
-            <?php else: ?>
-              <?php foreach ($questions as $index => $question): ?>
-                <?php $qNum = $index + 1; ?>
-                <div class="question-card">
-                  <div class="question-meta">
-                    <span class="question-badge"><?php echo $qNum; ?></span>
-                    <span>Question <?php echo $qNum; ?></span>
-                  </div>
-                  <input type="hidden" name="question_id_<?php echo $qNum; ?>" value="<?php echo htmlspecialchars((string) ($question['id'] ?? '')); ?>">
-                  <p class="question-text"><?php echo htmlspecialchars($question['question'] ?? ''); ?></p>
-                  <div class="input-icon-wrap">
-                    <i class="bi bi-chat-left-text input-icon" aria-hidden="true"></i>
-                    <input type="text" class="form-control" name="answer_<?php echo $qNum; ?>"
-                      placeholder="Your answer" autocomplete="off" required <?php echo $index === 0 ? 'autofocus' : ''; ?>>
-                  </div>
-                </div>
-              <?php endforeach; ?>
+            </div>
 
-              <div class="actions">
-                <a href="index.php?action=login" class="btn-outline-fc">Cancel</a>
-                <button type="submit" class="btn-primary-fc">Verify answers</button>
+            <div class="actions">
+              <a href="index.php?action=login" class="btn-outline-fc">Back to sign in</a>
+              <button type="submit" class="btn-primary-fc">Send verification code</button>
+            </div>
+          </form>
+
+        <?php elseif ($step == 2 && $codeSent): ?>
+          <header class="auth-header">
+            <h1 id="auth-title">Enter verification code</h1>
+            <p>We sent a 6-digit code to <strong><?php echo htmlspecialchars($resetEmail, ENT_QUOTES, 'UTF-8'); ?></strong>. The code expires in 15 minutes.</p>
+          </header>
+
+          <form method="POST" action="index.php?action=forgot-password" id="codeVerifyForm" novalidate>
+            <input type="hidden" name="intent" value="verify_code">
+            <div class="question-card" style="margin-bottom:0;">
+              <div class="question-meta">
+                <span class="question-badge"><i class="bi bi-shield-check"></i></span>
+                <span>Verification code</span>
               </div>
-            <?php endif; ?>
+              <div class="input-icon-wrap">
+                <i class="bi bi-123 input-icon" aria-hidden="true"></i>
+                <input type="text" class="form-control" id="verification_code" name="verification_code"
+                  inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6-digit code"
+                  autocomplete="one-time-code" required autofocus>
+              </div>
+            </div>
+
+            <div class="actions">
+              <a href="index.php?action=forgot-password" class="btn-outline-fc" onclick="return confirmResend(event);">Send new code</a>
+              <button type="submit" class="btn-primary-fc">Verify code</button>
+            </div>
+          </form>
+          <form method="POST" action="index.php?action=forgot-password" id="resendCodeForm" style="display:none;">
+            <input type="hidden" name="intent" value="resend_code">
+            <input type="hidden" name="email" value="<?php echo htmlspecialchars($resetEmail, ENT_QUOTES, 'UTF-8'); ?>">
           </form>
 
         <?php elseif ($step == 3): ?>
@@ -701,7 +721,7 @@ $progress = ($step <= 1) ? '33%' : (($step == 2) ? '66%' : '100%');
         <?php else: ?>
           <header class="auth-header">
             <h1 id="auth-title">Continue recovery</h1>
-            <p>Your verification is in progress. Continue to choose a recovery option.</p>
+            <p>Your email has been verified. Continue to choose a recovery option.</p>
           </header>
           <div class="actions">
             <a href="index.php?action=reset-options" class="btn-primary-fc" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Continue</a>
@@ -777,6 +797,14 @@ $progress = ($step <= 1) ? '33%' : (($step == 2) ? '66%' : '100%');
         if (confirmPassword) confirmPassword.addEventListener('input', validatePassword);
         validatePassword();
       }
+
+      function confirmResend(e) {
+        e.preventDefault();
+        var form = document.getElementById('resendCodeForm');
+        if (form) form.submit();
+        return false;
+      }
+      window.confirmResend = confirmResend;
 
       document.querySelectorAll('form').forEach(function (form) {
         form.addEventListener('submit', function (e) {

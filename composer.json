@@ -1,11 +1,11 @@
-
 {
     "name": "bansimplified/php-framework-template",
     "description": "A lightweight native PHP MVC framework template",
     "type": "project",
     "license": "MIT",
     "require": {
-        "vlucas/phpdotenv": "^5.8"
+        "vlucas/phpdotenv": "^5.8",
+        "phpmailer/phpmailer": "^7.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^13.4",

@@ -329,6 +329,33 @@
       transform: translateY(1px);
     }
 
+    .btn-outline-fc {
+      height: 2.75rem;
+      border: 1px solid var(--fc-border);
+      border-radius: 0.75rem;
+      background: #fff;
+      color: var(--fc-text);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn-outline-fc:hover {
+      border-color: #cfd6e0;
+      background: #f8fafc;
+      color: var(--fc-text);
+    }
+
+    .btn-outline-fc:focus {
+      box-shadow: 0 0 0 4px rgba(43, 46, 51, 0.08);
+      color: var(--fc-text);
+    }
+
     .alert-fc {
       border: 0;
       border-radius: 0.75rem;
@@ -471,8 +498,11 @@
         </form>
 
         <div class="auth-footer">
-          Don&rsquo;t have an account?
-          <a class="link-subtle" href="index.php?action=register">Create one</a>
+          <div class="mb-2">Don&rsquo;t have an account?</div>
+          <a class="btn-outline-fc w-100" href="index.php?action=register">
+            <i class="bi bi-person-plus" aria-hidden="true"></i>
+            Create new account
+          </a>
         </div>
       </main>
     </div>

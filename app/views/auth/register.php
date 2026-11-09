@@ -4,6 +4,7 @@ $old = isset($_SESSION['old']) && is_array($_SESSION['old']) ? $_SESSION['old'] 
 $security_questions = isset($_SESSION['security_questions']) && is_array($_SESSION['security_questions']) ? $_SESSION['security_questions'] : [];
 $old_questions = isset($old['secret_questions']) && is_array($old['secret_questions']) ? $old['secret_questions'] : [];
 $old_answers = isset($old['secret_answers']) && is_array($old['secret_answers']) ? $old['secret_answers'] : [];
+$prefillEmail = (string)($old['email'] ?? ($_GET['email'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -704,8 +705,8 @@ $old_answers = isset($old['secret_answers']) && is_array($old['secret_answers'])
                   <div class="input-icon-wrap">
                     <i class="bi bi-envelope input-icon" aria-hidden="true"></i>
                     <input type="email" class="form-control" id="email" name="email"
-                      value="<?php echo htmlspecialchars($old['email'] ?? ''); ?>"
-                      placeholder="name@example.com" autocomplete="email" required>
+                      value="<?php echo htmlspecialchars($prefillEmail, ENT_QUOTES, 'UTF-8'); ?>"
+                      placeholder="name@gmail.com" autocomplete="email" required>
                   </div>
                 </div>
                 <div class="col-sm-6">

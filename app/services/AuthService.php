@@ -1,5 +1,12 @@
 <?php
 // app/Services/AuthService.php
+if (!class_exists('User', false) && file_exists(__DIR__ . '/../models/User.php')) {
+  require_once __DIR__ . '/../models/User.php';
+}
+if (!class_exists('MailService', false) && file_exists(__DIR__ . '/MailService.php')) {
+  require_once __DIR__ . '/MailService.php';
+}
+
 class AuthService
 {
   protected $pdo;
@@ -10,6 +17,7 @@ class AuthService
     $this->pdo = $pdo;
     $this->userModel = new User($pdo);
   }
+
 
   public function login($email, $password)
   {
@@ -91,7 +99,10 @@ class AuthService
       return ['success' => false, 'errors' => $errors, 'old' => $this->getOldInput($data, $secretQuestions, $secretAnswers)];
     }
 
-    if ($this->userModel->emailExists($data['email'])) {
+    $email = trim($data['email'] ?? '');
+    $data['email'] = $email;
+
+    if ($this->userModel->emailExists($email)) {
       $errors[] = 'Email is already registered.';
       return ['success' => false, 'errors' => $errors, 'old' => $this->getOldInput($data, $secretQuestions, $secretAnswers)];
     }
@@ -99,16 +110,17 @@ class AuthService
     try {
       $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
       $data['password'] = $hashedPassword;
-      $data['username'] = $data['email'];
+      $data['username'] = $email;
 
       $userId = $this->userModel->create($data, $secretQuestions, $secretAnswers);
 
-      $this->logAction('New registration: ' . $data['email'] . ' as ' . $data['role']);
-      $this->notifyAdminOfNewRegistration($data['first_name'], $data['last_name'], $data['email'], $data['role']);
+      $this->logAction('New registration: ' . $email . ' as ' . ($data['role'] ?? 'user'));
+      $this->notifyAdminOfNewRegistration($data['first_name'] ?? '', $data['last_name'] ?? '', $email, $data['role'] ?? 'user');
+      $this->sendRegistrationEmail($email, trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')), $data['role'] ?? 'user');
 
       return [
         'success' => true,
-        'message' => 'Account created successfully! You can now log in with your credentials.'
+        'message' => 'Account created successfully! A confirmation email was sent if mail is configured. You can now log in with your credentials.'
       ];
     } catch (Exception $e) {
       error_log("Registration error: " . $e->getMessage());
@@ -283,7 +295,7 @@ class AuthService
       $this->userModel->updateEmail($userId, $newEmail);
 
       $this->clearResetSession();
-      $this->logAction("Email reset successfully via security questions from {$old_email} to {$newEmail} for user ID: {$userId}");
+      $this->logAction("Email reset successfully via security questions from {$oldEmail} to {$newEmail} for user ID: {$userId}");
 
       return [
         'success' => true,
@@ -364,6 +376,26 @@ class AuthService
       $stmt->execute(['New Registration', $message, 'system']);
     } catch (Exception $e) {
       error_log("Failed to notify admin: " . $e->getMessage());
+    }
+  }
+
+  protected function sendRegistrationEmail(string $email, string $name, string $role): void
+  {
+    if (!class_exists('MailService', false) && file_exists(__DIR__ . '/MailService.php')) {
+      require_once __DIR__ . '/MailService.php';
+    }
+    if (!class_exists('MailService')) {
+      $this->logAction('Registration email skipped: MailService unavailable for ' . $email);
+      return;
+    }
+
+    try {
+      $mailer = new MailService();
+      $sent = $mailer->sendRegistrationWelcome($email, $name !== '' ? $name : $email, $role);
+      $this->logAction(($sent ? 'Registration confirmation email sent to ' : 'Registration confirmation email not sent to ') . $email);
+    } catch (Exception $e) {
+      error_log('Registration email error: ' . $e->getMessage());
+      $this->logAction('Registration confirmation email failed for ' . $email);
     }
   }
 }

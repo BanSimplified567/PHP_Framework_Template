@@ -3,3 +3,4 @@ config/.env
 reservation.sql
 .app
 /vendor/
+database
