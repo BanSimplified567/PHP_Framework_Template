@@ -6,7 +6,7 @@ $firstName = htmlspecialchars($_SESSION['first_name'] ?? $_SESSION['username'] ?
 $userId = $_SESSION['user_id'] ?? 0;
 
 // Only show for authenticated users
-if (!in_array($userRole, ['admin', 'staff', 'cashier'])) {
+if (!in_array($userRole, ['admin', 'staff', 'user'])) {
   return;
 }
 
@@ -30,11 +30,11 @@ $roleConfig = [
     'color' => '#34d399', // Accent green
     'darkColor' => '#059669' // Secondary green
   ],
-  'cashier' => [
+  'user' => [
     'badge' => 'bg-success',
-    'badgeText' => 'Cashier',
-    'portalName' => 'Cashier Portal',
-    'dashboardPrefix' => 'cashier',
+    'badgeText' => 'User',
+    'portalName' => 'User Portal',
+    'dashboardPrefix' => 'user',
     'iconBg' => 'bg-success',
     'color' => '#10b981',
     'darkColor' => '#065f46'
@@ -864,17 +864,17 @@ $config = $roleConfig[$userRole];
             </ul>
           </div>
 
-        <?php elseif ($userRole === 'cashier'): ?>
-          <!-- Cashier Menus -->
+        <?php elseif ($userRole === 'user'): ?>
+          <!-- User Menus -->
           <div class="section-header">Clients</div>
 
-          <a href="index.php?action=cashier/clients" class="nav-link <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'cashier/clients') !== false && strpos($_GET['action'] ?? '', 'cashier/clients/') === false) ? 'active' : ''; ?>">
+          <a href="index.php?action=user/clients" class="nav-link <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'user/clients') !== false && strpos($_GET['action'] ?? '', 'user/clients/') === false) ? 'active' : ''; ?>">
             <div class="icon-container"><i class="fas fa-users"></i></div>
             <span class="sidebar-text">Client List</span>
           </a>
 
-          <div class="nav-item-dropdown <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'cashier/payments') !== false) ? 'open' : ''; ?>">
-            <button class="nav-link-dropdown" data-dropdown="cashierPayments">
+          <div class="nav-item-dropdown <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'user/payments') !== false) ? 'open' : ''; ?>">
+            <button class="nav-link-dropdown" data-dropdown="userPayments">
               <span class="d-flex align-items-center">
                 <div class="icon-container"><i class="fas fa-cash-register"></i></div>
                 <span class="sidebar-text">Payments</span>
@@ -882,13 +882,13 @@ $config = $roleConfig[$userRole];
               <i class="fas fa-chevron-right dropdown-arrow"></i>
             </button>
             <ul class="dropdown-menu-sidebar">
-              <li><a href="index.php?action=cashier/payments/record" class="nav-link <?php echo (isset($_GET['action']) && (strpos($_GET['action'] ?? '', 'cashier/payments/record') !== false || strpos($_GET['action'] ?? '', 'cashier/payments/store') !== false)) ? 'active' : ''; ?>"><i class="fas fa-cash-register me-2"></i>Record Payment</a></li>
-              <li><a href="index.php?action=cashier/payments" class="nav-link <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'cashier/payments') !== false && strpos($_GET['action'] ?? '', 'cashier/payments/') === false) ? 'active' : ''; ?>"><i class="fas fa-history me-2"></i>Payment History</a></li>
+              <li><a href="index.php?action=user/payments/record" class="nav-link <?php echo (isset($_GET['action']) && (strpos($_GET['action'] ?? '', 'user/payments/record') !== false || strpos($_GET['action'] ?? '', 'user/payments/store') !== false)) ? 'active' : ''; ?>"><i class="fas fa-cash-register me-2"></i>Record Payment</a></li>
+              <li><a href="index.php?action=user/payments" class="nav-link <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'user/payments') !== false && strpos($_GET['action'] ?? '', 'user/payments/') === false) ? 'active' : ''; ?>"><i class="fas fa-history me-2"></i>Payment History</a></li>
             </ul>
           </div>
 
-          <div class="nav-item-dropdown <?php echo (isset($_GET['action']) && (strpos($_GET['action'] ?? '', 'cashier/disbursement-queue') !== false)) ? 'open' : ''; ?>">
-            <button class="nav-link-dropdown" data-dropdown="cashierLoans">
+          <div class="nav-item-dropdown <?php echo (isset($_GET['action']) && (strpos($_GET['action'] ?? '', 'user/disbursement-queue') !== false)) ? 'open' : ''; ?>">
+            <button class="nav-link-dropdown" data-dropdown="userLoans">
               <span class="d-flex align-items-center">
                 <div class="icon-container"><i class="fas fa-hand-holding-usd"></i></div>
                 <span class="sidebar-text">Loans</span>
@@ -896,14 +896,14 @@ $config = $roleConfig[$userRole];
               <i class="fas fa-chevron-right dropdown-arrow"></i>
             </button>
             <ul class="dropdown-menu-sidebar">
-              <li><a href="index.php?action=cashier/disbursement-queue" class="nav-link <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'cashier/disbursement-queue') !== false) ? 'active' : ''; ?>"><i class="fas fa-clock me-2"></i>Disbursement Queue</a></li>
+              <li><a href="index.php?action=user/disbursement-queue" class="nav-link <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'user/disbursement-queue') !== false) ? 'active' : ''; ?>"><i class="fas fa-clock me-2"></i>Disbursement Queue</a></li>
             </ul>
           </div>
 
           <div class="section-header">Reports</div>
 
-          <div class="nav-item-dropdown <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'cashier/reports') !== false) ? 'open' : ''; ?>">
-            <button class="nav-link-dropdown" data-dropdown="cashierReports">
+          <div class="nav-item-dropdown <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', 'user/reports') !== false) ? 'open' : ''; ?>">
+            <button class="nav-link-dropdown" data-dropdown="userReports">
               <span class="d-flex align-items-center">
                 <div class="icon-container"><i class="fas fa-chart-line"></i></div>
                 <span class="sidebar-text">Reports</span>
@@ -911,7 +911,7 @@ $config = $roleConfig[$userRole];
               <i class="fas fa-chevron-right dropdown-arrow"></i>
             </button>
             <ul class="dropdown-menu-sidebar">
-              <li><a href="index.php?action=cashier/reports" class="nav-link <?php echo (isset($_GET['action']) && $_GET['action'] === 'cashier/reports') ? 'active' : ''; ?>"><i class="fas fa-list me-2"></i>All Reports</a></li>
+              <li><a href="index.php?action=user/reports" class="nav-link <?php echo (isset($_GET['action']) && $_GET['action'] === 'user/reports') ? 'active' : ''; ?>"><i class="fas fa-list me-2"></i>All Reports</a></li>
             </ul>
           </div>
         <?php endif; ?>
@@ -932,8 +932,8 @@ $config = $roleConfig[$userRole];
             <span class="sidebar-text">My Profile</span>
           </a>
         <?php endif; ?>
-        <?php if ($userRole === 'cashier'): ?>
-          <a href="index.php?action=cashier/profile" class="nav-link <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', '/profile') !== false) ? 'active' : ''; ?>">
+        <?php if ($userRole === 'user'): ?>
+          <a href="index.php?action=user/profile" class="nav-link <?php echo (isset($_GET['action']) && strpos($_GET['action'] ?? '', '/profile') !== false) ? 'active' : ''; ?>">
             <div class="icon-container"><i class="fas fa-user-circle"></i></div>
             <span class="sidebar-text">My Profile</span>
           </a>

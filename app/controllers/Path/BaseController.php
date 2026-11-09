@@ -16,7 +16,7 @@ class BaseController
     // Get user role
     $role = $_SESSION['role'] ?? null;
 
-    // Verify this is actually an admin, staff, or cashier user
+    // Verify this is actually an admin, staff, or user user
     if (!$this->isAuthorizedUser()) {
       $this->redirect('login');
       return;
@@ -24,14 +24,14 @@ class BaseController
 
     $isAdmin = ($role === 'admin');
     $isStaff = ($role === 'staff');
-    $isCashier = ($role === 'cashier');
+    $isUser = ($role === 'user');
     $isAuthorized = true; // We already checked above
 
     // Set page title based on role
     $page_title = $data['page_title'] ?? match ($role) {
       'admin' => 'Admin Panel - PHP_Framecore',
       'staff' => 'Staff Panel - PHP_Framecore',
-      'cashier' => 'Cashier Panel - PHP_Framecore',
+      'user' => 'User Panel - PHP_Framecore',
       default => 'PHP_Framecore'
     };
 
@@ -92,13 +92,13 @@ class BaseController
     }
   }
 
-  protected function requireCashier()
+  protected function requireUser()
   {
     $this->requireLogin();
 
     $userRole = $_SESSION['role'] ?? null;
-    if ($userRole !== 'cashier') {
-      $_SESSION['error'] = "Access denied. Cashier privileges required.";
+    if ($userRole !== 'user') {
+      $_SESSION['error'] = "Access denied. User privileges required.";
       $this->redirect('dashboard');
     }
   }
@@ -110,7 +110,7 @@ class BaseController
     }
 
     $role = $_SESSION['role'] ?? null;
-    return in_array($role, ['admin', 'staff', 'cashier']);
+    return in_array($role, ['admin', 'staff', 'user']);
   }
 
   protected function isAdminOrStaff()
@@ -133,9 +133,9 @@ class BaseController
     return ($this->isLoggedIn() && ($_SESSION['role'] ?? null) === 'staff');
   }
 
-  protected function isCashier()
+  protected function isUser()
   {
-    return ($this->isLoggedIn() && ($_SESSION['role'] ?? null) === 'cashier');
+    return ($this->isLoggedIn() && ($_SESSION['role'] ?? null) === 'user');
   }
 
   protected function isLoggedIn()

@@ -22,7 +22,7 @@ if (empty($action)) {
     $dashboards = [
       'admin' => 'admin/dashboard',
       'staff' => 'staff/dashboard',
-      'cashier' => 'cashier/dashboard'
+      'user' => 'user/dashboard'
     ];
 
     $dashboard = $dashboards[$role] ?? 'login';
@@ -58,9 +58,9 @@ $allRoutes = [
     'staff/dashboard' => 'Staff/StaffDashboardController@index',
   ],
 
-  // ==================== CASHIER ROUTES ====================
-  'cashier' => [
-    'cashier/dashboard' => 'Cashier/CashierDashboardController@index',
+  // ==================== USER ROUTES ====================
+  'user' => [
+    'user/dashboard' => 'User/UserDashboardController@index',
   ],
 
 
@@ -102,9 +102,9 @@ function isRouteAccessible($action, $role, $isLoggedIn)
     return $isLoggedIn && $role === 'staff';
   }
 
-  // Check cashier routes (if enabled)
-  if (isset($allRoutes['cashier'][$action])) {
-    return $isLoggedIn && $role === 'cashier';
+  // Check user routes (if enabled)
+  if (isset($allRoutes['user'][$action])) {
+    return $isLoggedIn && $role === 'user';
   }
 
   // Check shared routes
@@ -140,7 +140,7 @@ if (!isRouteAccessible($action, $role, $isLoggedIn)) {
     $dashboards = [
       'admin' => 'admin/dashboard',
       'staff' => 'staff/dashboard',
-      'cashier' => 'cashier/dashboard'
+      'user' => 'user/dashboard'
     ];
     $dashboard = $dashboards[$role] ?? 'login';
 

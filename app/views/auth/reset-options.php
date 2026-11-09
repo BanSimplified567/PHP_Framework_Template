@@ -4,608 +4,519 @@ $first_name = $_SESSION['reset_first_name'] ?? '';
 $last_name = $_SESSION['reset_last_name'] ?? '';
 $email = $_SESSION['reset_email'] ?? '';
 ?>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!DOCTYPE html>
+<html lang="en">
 
-<style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    background: url('assets/bfcloansbackground.png') center/cover fixed;
-    font-family: 'Segoe UI', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .reset-options-container {
-    width: 100%;
-    max-width: 900px;
-    height: 650px;
-    margin: 0 auto;
-  }
-
-  .reset-options-card {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* Fixed Header */
-  .reset-options-header {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    color: white;
-    padding: 1.5rem;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .logo i {
-    font-size: 1.3rem;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.5rem;
-    border-radius: 8px;
-  }
-
-  .logo-text {
-    font-size: 1.1rem;
-  }
-
-  h1 {
-    font-size: 1.5rem;
-    margin-bottom: 0.25rem;
-    font-weight: 700;
-    color: white;
-  }
-
-  .subtitle {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
-  }
-
-  /* Progress Steps - Compact */
-  .progress-steps {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-
-  .step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .step-number {
-    width: 32px;
-    height: 32px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.85rem;
-    border: 2px solid transparent;
-  }
-
-  .step.active .step-number {
-    background: white;
-    color: #7c3aed;
-    border-color: white;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
-  }
-
-  .step.completed .step-number {
-    background: #10b981;
-    color: white;
-    border-color: #10b981;
-  }
-
-  .step-label {
-    font-size: 0.65rem;
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 500;
-  }
-
-  .step-divider {
-    width: 40px;
-    height: 2px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 1px;
-  }
-
-  /* Scrollable Content Area */
-  .scrollable-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.25rem;
-  }
-
-  /* Custom scrollbar */
-  .scrollable-content::-webkit-scrollbar {
-    width: 5px;
-  }
-
-  .scrollable-content::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-
-  .scrollable-content::-webkit-scrollbar-thumb {
-    background: #7c3aed;
-    border-radius: 5px;
-  }
-
-  /* Alert - Compact */
-  .alert {
-    padding: 0.6rem 1rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    border-left: 3px solid #dc2626;
-    background: #fee;
-    color: #dc2626;
-  }
-
-  .alert i {
-    font-size: 0.9rem;
-  }
-
-  /* User Info - Compact */
-  .user-info {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
-    padding: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .user-info i {
-    font-size: 2rem;
-    color: #7c3aed;
-  }
-
-  .user-info strong {
-    font-size: 0.95rem;
-    color: #1f2937;
-    display: block;
-    margin-bottom: 0.1rem;
-  }
-
-  .user-info p {
-    color: #6b7280;
-    font-size: 0.75rem;
-  }
-
-  .instruction {
-    text-align: center;
-    color: #374151;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-    font-weight: 500;
-  }
-
-  /* Options Grid - Compact */
-  .options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .option-card {
-    cursor: pointer;
-    border: 2px solid #e5e7eb;
-    border-radius: 0.75rem;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    display: block;
-  }
-
-  .option-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    border-color: #7c3aed;
-  }
-
-  .option-card input[type="radio"] {
-    display: none;
-  }
-
-  .option-card input[type="radio"]:checked + .option-content {
-    background: #f5f3ff;
-  }
-
-  .option-card input[type="radio"]:checked + .option-content .option-icon {
-    background: #7c3aed;
-    color: white;
-  }
-
-  .option-content {
-    padding: 1rem;
-    text-align: center;
-    background: white;
-    transition: all 0.2s ease;
-  }
-
-  .option-icon {
-    width: 50px;
-    height: 50px;
-    background: #f3f4f6;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 0.5rem;
-    font-size: 1.3rem;
-    color: #6b7280;
-    transition: all 0.2s ease;
-  }
-
-  .option-card h3 {
-    font-size: 1.1rem;
-    color: #1f2937;
-    margin-bottom: 0.25rem;
-    font-weight: 600;
-  }
-
-  .option-card p {
-    color: #6b7280;
-    font-size: 0.7rem;
-    line-height: 1.3;
-    margin-bottom: 0.5rem;
-  }
-
-  .option-card ul {
-    list-style: none;
-    text-align: left;
-    padding: 0 0.5rem;
-  }
-
-  .option-card ul li {
-    color: #4b5563;
-    font-size: 0.65rem;
-    margin-bottom: 0.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .option-card ul li i {
-    color: #10b981;
-    font-size: 0.6rem;
-  }
-
-  /* Button Group - Compact */
-  .button-group {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: center;
-  }
-
-  .btn {
-    padding: 0.6rem 1.2rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    min-width: 140px;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    color: white;
-  }
-
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-  }
-
-  .btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 1px solid #e5e7eb;
-  }
-
-  .btn-secondary:hover {
-    background: #e5e7eb;
-    transform: translateY(-2px);
-  }
-
-  /* Footer - Compact */
-  .reset-options-footer {
-    background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
-    padding: 0.75rem 1rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    flex-shrink: 0;
-  }
-
-  .security-notice,
-  .admin-support {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.6rem;
-    background: white;
-    border-radius: 0.5rem;
-    border-left: 3px solid #7c3aed;
-  }
-
-  .admin-support {
-    border-left-color: #d97706;
-  }
-
-  .security-notice i,
-  .admin-support i {
-    font-size: 1rem;
-    margin-top: 1px;
-  }
-
-  .security-notice i {
-    color: #7c3aed;
-  }
-
-  .admin-support i {
-    color: #d97706;
-  }
-
-  .security-notice strong,
-  .admin-support strong {
-    display: block;
-    color: #1f2937;
-    margin-bottom: 0.1rem;
-    font-size: 0.75rem;
-  }
-
-  .security-notice p,
-  .admin-support p {
-    color: #6b7280;
-    font-size: 0.65rem;
-    line-height: 1.3;
-    margin: 0;
-  }
-
-  .admin-support a {
-    color: #7c3aed;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.65rem;
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .reset-options-container {
-      height: auto;
-      max-height: 90vh;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choose reset option - PHP Framecore</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fc-accent: #54e5c7;
+      --fc-accent-hover: #3dd4b4;
+      --fc-accent-soft: rgba(84, 229, 199, 0.14);
+      --fc-accent-ring: rgba(84, 229, 199, 0.35);
+      --fc-dark: #2b2e33;
+      --fc-dark-soft: #3a3e45;
+      --fc-text: #2b2e33;
+      --fc-muted: #6b7280;
+      --fc-border: #e5e7eb;
+      --fc-bg: #f3f4f6;
+      --fc-surface: #ffffff;
+      --bs-primary: var(--fc-accent);
+      --bs-primary-rgb: 84, 229, 199;
+      --bs-body-font-family: "Inter", system-ui, -apple-system, sans-serif;
+      --bs-body-color: var(--fc-text);
+      --bs-border-color: var(--fc-border);
     }
 
-    .options-grid {
-      grid-template-columns: 1fr;
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background-color: var(--fc-bg);
+      background-image:
+        radial-gradient(ellipse 70% 45% at 15% 10%, rgba(84, 229, 199, 0.1), transparent),
+        linear-gradient(180deg, #f3f4f6 0%, #e9ecef 100%);
     }
 
-    .button-group {
-      flex-direction: column;
+    .auth-shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
     }
 
-    .btn {
+    .auth-wrapper {
       width: 100%;
+      max-width: 980px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+      gap: 1.25rem;
+      align-items: stretch;
     }
 
-    .reset-options-footer {
-      grid-template-columns: 1fr;
+    .auth-panel {
+      background: var(--fc-surface);
+      border: 1px solid rgba(229, 231, 235, 0.95);
+      border-radius: 1.25rem;
+      box-shadow:
+        0 1px 2px rgba(43, 46, 51, 0.04),
+        0 12px 36px -14px rgba(43, 46, 51, 0.14);
     }
 
-    .progress-steps {
-      gap: 0.25rem;
+    .auth-brand {
+      background: linear-gradient(160deg, var(--fc-dark) 0%, #23262b 55%, #1d2024 100%);
+      color: #fff;
+      padding: 2.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+      position: relative;
+      overflow: hidden;
     }
 
-    .step-divider {
-      width: 20px;
+    .auth-brand::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -35% auto;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(84, 229, 199, 0.18), transparent 65%);
+      pointer-events: none;
     }
-  }
 
-  @media (max-width: 480px) {
-    .reset-options-header {
-      padding: 1rem;
+    .brand-top,
+    .brand-bottom {
+      position: relative;
+      z-index: 1;
     }
 
-    h1 {
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .brand-mark {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 0.85rem;
+      background: rgba(84, 229, 199, 0.14);
+      color: var(--fc-accent);
+      border: 1px solid rgba(84, 229, 199, 0.22);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-size: 1.2rem;
+      flex-shrink: 0;
     }
 
-    .progress-steps {
+    .brand-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .brand-tag {
+      font-size: 0.8125rem;
+      color: rgba(255, 255, 255, 0.62);
+    }
+
+    .brand-headline {
+      font-size: clamp(1.6rem, 2.2vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin: 0 0 0.75rem;
+      color: #fff;
+    }
+
+    .brand-copy {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.9375rem;
+      max-width: 34ch;
+    }
+
+    .auth-form {
+      padding: 2rem;
+      display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      justify-content: center;
     }
 
-    .step-divider {
-      width: 2px;
-      height: 20px;
+    @media (min-width: 576px) {
+      .auth-form {
+        padding: 2.25rem 2.5rem;
+      }
     }
 
-    .user-info {
-      flex-direction: column;
+    .auth-header {
+      margin-bottom: 1rem;
+      flex-shrink: 0;
+    }
+
+    .auth-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      margin: 0 0 0.375rem;
+      color: var(--fc-dark);
+    }
+
+    .auth-header p {
+      margin: 0;
+      font-size: 0.9375rem;
+      color: var(--fc-muted);
+    }
+
+    .form-label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--fc-text);
+      margin-bottom: 0.375rem;
+    }
+
+    .form-control {
+      height: 2.75rem;
+      padding: 0.625rem 0.875rem;
+      font-size: 0.9375rem;
+      border-radius: 0.75rem;
+      border-color: var(--fc-border);
+      background-color: #fff;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .form-control::placeholder {
+      color: #94a3b8;
+    }
+
+    .form-control:focus {
+      border-color: var(--fc-accent);
+      box-shadow: 0 0 0 4px var(--fc-accent-ring);
+    }
+
+    .input-icon-wrap {
+      position: relative;
+    }
+
+    .input-icon-wrap .form-control {
+      padding-left: 2.625rem;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 0.875rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 1rem;
+      pointer-events: none;
+      transition: color 0.15s ease;
+      z-index: 2;
+    }
+
+    .input-icon-wrap:focus-within .input-icon {
+      color: var(--fc-dark);
+    }
+
+    .btn-primary-fc {
+      height: 2.75rem;
+      border: 0;
+      border-radius: 0.75rem;
+      background: var(--fc-dark);
+      color: #fff;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      padding: 0 1.1rem;
+      transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-primary-fc:hover {
+      background: var(--fc-dark-soft);
+      color: #fff;
+    }
+
+    .btn-primary-fc:focus {
+      box-shadow: 0 0 0 4px rgba(43, 46, 51, 0.2);
+      color: #fff;
+    }
+
+    .btn-outline-fc {
+      height: 2.75rem;
+      border: 1px solid var(--fc-border);
+      border-radius: 0.75rem;
+      background: #fff;
+      color: var(--fc-text);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      padding: 0 1.1rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-outline-fc:hover {
+      border-color: #cfd6e0;
+      background: #f8fafc;
+      color: var(--fc-text);
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid var(--fc-border);
+      flex-shrink: 0;
+    }
+
+    .actions > * {
+      flex: 1;
+    }
+
+    .alert-fc {
+      border: 0;
+      border-radius: 0.75rem;
+      padding: 0.75rem 0.875rem;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      flex-shrink: 0;
+    }
+
+    .alert-fc-danger {
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .alert-fc-success {
+      background: rgba(84, 229, 199, 0.12);
+      color: #1f6f5e;
+      border: 1px solid rgba(84, 229, 199, 0.35);
+    }
+
+    .option-card {
+      border: 1px solid var(--fc-border);
+      border-radius: 0.9rem;
+      padding: 1rem 1.1rem;
+      margin-bottom: 0.75rem;
+      background: #fcfcfd;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+      display: block;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .option-card:hover {
+      border-color: var(--fc-accent);
+      background: rgba(84, 229, 199, 0.05);
+    }
+
+    .option-card input[type="radio"] {
+      display: none;
+    }
+
+    .option-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .option-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.7rem;
+      background: var(--fc-dark);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .option-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--fc-dark);
+      margin: 0;
+    }
+
+    .option-desc {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--fc-muted);
+      line-height: 1.4;
+    }
+
+    .option-footer {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--fc-border);
+      font-size: 0.75rem;
+      color: var(--fc-muted);
+    }
+
+    .option-footer li {
+      list-style: none;
+      margin-bottom: 0.2rem;
+      color: var(--fc-muted);
+    }
+
+    .option-footer li::before {
+      content: "\2022";
+      color: var(--fc-accent);
+      font-weight: bold;
+      display: inline-block;
+      width: 0.75rem;
+      margin-left: -0.75rem;
+    }
+
+    .auth-footer {
+      margin-top: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--fc-border);
+      font-size: 0.8125rem;
+      color: var(--fc-muted);
       text-align: center;
+      flex-shrink: 0;
     }
-  }
-</style>
 
-<div class="reset-options-container">
-  <div class="reset-options-card">
-    <!-- Fixed Header -->
-    <div class="reset-options-header">
-      <div class="logo">
-        <i class="fas fa-chalkboard-admin"></i>
-        <span class="logo-text">Faculty Recovery</span>
-      </div>
-      <h1>Choose Reset Option</h1>
-      <p class="subtitle">Welcome back, <?php echo htmlspecialchars($first_name . ' ' . $last_name); ?>!</p>
+    .link-subtle {
+      color: var(--fc-dark);
+      font-weight: 500;
+      text-decoration: none;
+    }
 
-      <div class="progress-steps">
-        <div class="step completed">
-          <div class="step-number"><i class="fas fa-check"></i></div>
-          <div class="step-label">Security</div>
+    .link-subtle:hover {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      color: #1a1c20;
+    }
+
+    @media (max-width: 991.98px) {
+      .auth-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 620px;
+      }
+
+      .auth-brand {
+        padding: 1.75rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="auth-shell">
+    <div class="auth-wrapper">
+      <section class="auth-panel auth-brand" aria-label="Account recovery">
+        <div class="brand-top">
+          <div class="brand">
+            <div class="brand-mark" aria-hidden="true"><i class="bi bi-key"></i></div>
+            <div>
+              <div class="brand-name">PHP Framecore</div>
+              <div class="brand-tag">Account recovery</div>
+            </div>
+          </div>
+
+          <h2 class="brand-headline">Choose how to recover your account.</h2>
+          <p class="brand-copy">Select what you would like to reset. A verification step will follow.</p>
+
+          <div class="brand-points">
+            <div class="brand-point">
+              <i class="bi bi-check2"></i>
+              <span>Your identity has been verified.</span>
+            </div>
+            <div class="brand-point">
+              <i class="bi bi-check2"></i>
+              <span>Choose password or email reset.</span>
+            </div>
+          </div>
         </div>
-        <div class="step-divider"></div>
-        <div class="step active">
-          <div class="step-number">2</div>
-          <div class="step-label">Choose</div>
-        </div>
-        <div class="step-divider"></div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <div class="step-label">Reset</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Scrollable Content -->
-    <div class="scrollable-content">
-      <?php if (isset($_SESSION['error'])): ?>
-        <div class="alert">
-          <i class="fas fa-exclamation-circle"></i>
-          <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+        <div class="brand-bottom">
+          <div class="auth-footer">
+            <a class="link-subtle" href="index.php?action=forgot-password">Start over</a>
+          </div>
         </div>
-      <?php endif; ?>
+      </section>
 
-      <div class="user-info">
-        <i class="fas fa-user-circle"></i>
-        <div>
-          <strong><?php echo htmlspecialchars($first_name . ' ' . $last_name); ?></strong>
-          <p><?php echo htmlspecialchars($email); ?></p>
-        </div>
-      </div>
+      <main class="auth-panel auth-form" aria-labelledby="reset-title">
+        <?php if (isset($_SESSION['error'])): ?>
+          <div class="alert-fc alert-fc-danger d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-exclamation-circle mt-1" aria-hidden="true"></i>
+            <div><?php echo $_SESSION['error'];
+                  unset($_SESSION['error']); ?></div>
+          </div>
+        <?php endif; ?>
 
-      <p class="instruction">Identity verified. What would you like to reset?</p>
+        <?php if (isset($_SESSION['success'])): ?>
+          <div class="alert-fc alert-fc-success d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-check-circle mt-1" aria-hidden="true"></i>
+            <div><?php echo htmlspecialchars($_SESSION['success']);
+                  unset($_SESSION['success']); ?></div>
+          </div>
+        <?php endif; ?>
 
-      <form method="POST" action="index.php?action=reset-options" class="options-form">
-        <div class="options-grid">
+        <header class="auth-header">
+          <h1 id="reset-title">Reset option</h1>
+          <p>Identity verified for <?php echo htmlspecialchars($first_name . ' ' . $last_name); ?> (<?php echo htmlspecialchars($email); ?>).</p>
+        </header>
+
+        <form method="POST" action="index.php?action=reset-options" class="options-form" novalidate>
           <label class="option-card">
             <input type="radio" name="reset_option" value="password" required>
-            <div class="option-content">
-              <div class="option-icon">
-                <i class="fas fa-lock"></i>
-              </div>
-              <h3>Reset Password</h3>
-              <p>Change your account password</p>
-              <ul>
-                <li><i class="fas fa-check"></i> Create new strong password</li>
-                <li><i class="fas fa-check"></i> Meets security requirements</li>
-              </ul>
+            <div class="option-header">
+              <div class="option-icon"><i class="bi bi-lock"></i></div>
+              <h3 class="option-title">Reset password</h3>
             </div>
+            <p class="option-desc">Create a new strong password for your account.</p>
+            <ul class="option-footer">
+              <li>Meets security requirements (8+ characters)</li>
+              <li>Confirmed with a second entry</li>
+            </ul>
           </label>
 
           <label class="option-card">
             <input type="radio" name="reset_option" value="email" required>
-            <div class="option-content">
-              <div class="option-icon">
-                <i class="fas fa-envelope"></i>
-              </div>
-              <h3>Reset Email</h3>
-              <p>Change your account email</p>
-              <ul>
-                <li><i class="fas fa-check"></i> Update to new email</li>
-                <li><i class="fas fa-check"></i> Must verify new email</li>
-              </ul>
+            <div class="option-header">
+              <div class="option-icon"><i class="bi bi-envelope"></i></div>
+              <h3 class="option-title">Reset email</h3>
             </div>
+            <p class="option-desc">Update your account email address.</p>
+            <ul class="option-footer">
+              <li>Enter and confirm new email</li>
+              <li>Login with new email after update</li>
+            </ul>
           </label>
-        </div>
 
-        <div class="form-actions">
-          <div class="button-group">
-            <a href="index.php?action=forgot-password" class="btn btn-secondary">
-              <i class="fas fa-redo"></i> Start Over
-            </a>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-arrow-right"></i> Continue
-            </button>
+          <div class="actions">
+            <a href="index.php?action=forgot-password" class="btn-outline-fc">Start over</a>
+            <button type="submit" class="btn-primary-fc">Continue</button>
           </div>
-        </div>
-      </form>
-    </div>
-
-    <!-- Fixed Footer -->
-    <div class="reset-options-footer">
-      <div class="security-notice">
-        <i class="fas fa-shield-alt"></i>
-        <div>
-          <strong>Security</strong>
-          <p>Changes are logged</p>
-        </div>
-      </div>
-      <div class="admin-support">
-        <i class="fas fa-headset"></i>
-        <div>
-          <strong>Support</strong>
-          <p><a href="mailto:support@institution.edu">Email</a></p>
-        </div>
-      </div>
+        </form>
+      </main>
     </div>
   </div>
-</div>
+</body>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Form submission loading state
-  document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', function() {
-      const btn = this.querySelector('button[type="submit"]');
-      if (btn && !btn.disabled) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-        btn.disabled = true;
-      }
-    });
-  });
-
-  // Add active class to selected option
-  document.querySelectorAll('.option-card input[type="radio"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-      document.querySelectorAll('.option-card').forEach(card => {
-        card.style.borderColor = '#e5e7eb';
-      });
-      if (this.checked) {
-        this.closest('.option-card').style.borderColor = '#7c3aed';
-      }
-    });
-  });
-});
-</script>
+</html>

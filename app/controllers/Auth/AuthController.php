@@ -200,7 +200,7 @@ class AuthController extends BaseController
 
     if (empty($role)) {
       $errors[] = "Role selection is required.";
-    } elseif (!in_array($role, ['admin', 'staff', 'cashier'])) {
+    } elseif (!in_array($role, ['admin', 'staff', 'user'])) {
       $errors[] = "Invalid role selected.";
     }
 
@@ -809,8 +809,8 @@ class AuthController extends BaseController
       $this->redirect('admin/dashboard');
     } elseif ($_SESSION['role'] == 'staff') {
       $this->redirect('staff/dashboard');
-    } elseif ($_SESSION['role'] == 'cashier') {
-      $this->redirect('cashier/dashboard');
+    } elseif ($_SESSION['role'] == 'user') {
+      $this->redirect('user/dashboard');
     } else {
       // Fallback for any other roles
       $_SESSION['error'] = "Unauthorized access. Please contact administrator.";

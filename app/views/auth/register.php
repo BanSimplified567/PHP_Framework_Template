@@ -463,14 +463,21 @@ $old_answers = isset($old['secret_answers']) && is_array($old['secret_answers'])
       display: flex;
     }
 
+    #registerForm {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
     .step-scroll {
       flex: 1;
       min-height: 0;
-      overflow-y: auto;
       padding-right: 0.25rem;
       margin-bottom: 0.25rem;
+      overflow-y: auto;
+      padding-bottom: 0.5rem;
     }
-
     .review-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -589,16 +596,17 @@ $old_answers = isset($old['secret_answers']) && is_array($old['secret_answers'])
       }
 
       .auth-form {
-        max-height: none;
-        overflow: visible;
+        max-height: calc(100vh - 1rem);
+        overflow: hidden;
       }
 
       .form-step.is-active {
-        display: block;
+        display: flex;
       }
 
       .step-scroll {
-        overflow: visible;
+        overflow: scroll;
+        -webkit-overflow-scrolling: touch;
       }
 
       .review-grid {
@@ -717,7 +725,7 @@ $old_answers = isset($old['secret_answers']) && is_array($old['secret_answers'])
                       <option value="" disabled <?php echo empty($old['role'] ?? '') ? 'selected' : ''; ?>>Select a role</option>
                       <option value="admin" <?php echo (($old['role'] ?? '') === 'admin') ? 'selected' : ''; ?>>Administrator</option>
                       <option value="staff" <?php echo (($old['role'] ?? '') === 'staff') ? 'selected' : ''; ?>>Staff member</option>
-                      <option value="cashier" <?php echo (($old['role'] ?? '') === 'cashier') ? 'selected' : ''; ?>>Cashier</option>
+                      <option value="user" <?php echo (($old['role'] ?? '') === 'user') ? 'selected' : ''; ?>>User</option>
                     </select>
                   </div>
                 </div>

@@ -33,8 +33,11 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table phpframecore.notifications: ~0 rows (approximately)
+-- Dumping data for table phpframecore.notifications: ~2 rows (approximately)
 DELETE FROM `notifications`;
+INSERT INTO `notifications` (`id`, `title`, `message`, `type`, `is_read`, `created_at`) VALUES
+	(1, 'New Registration', 'New staff registration pending review: kaizen Bringcola', 'system', 0, '2026-11-09 08:40:46'),
+	(2, 'New Registration', 'New staff registration pending review: kaizen Bringcola', 'system', 0, '2026-11-09 08:51:46');
 
 -- Dumping structure for table phpframecore.secret_questions
 CREATE TABLE IF NOT EXISTS `secret_questions` (
@@ -83,8 +86,11 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `idx_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table phpframecore.users: ~0 rows (approximately)
+-- Dumping data for table phpframecore.users: ~2 rows (approximately)
 DELETE FROM `users`;
+INSERT INTO `users` (`id`, `username`, `email`, `password`, `first_name`, `last_name`, `phone`, `role`, `is_active`, `failed_attempts`, `locked_until`, `secret_question_setup`, `reset_token`, `reset_expires`, `last_login`, `last_logout`, `created_at`, `updated_at`) VALUES
+	(1, 'kaizen@gmail.com', 'kaizen@gmail.com', '$2y$12$Z9n5zG2lMBjwihAZCuGIB.wk/Nxk5dMu5MAcp7OoLCy7PePLgxeDK', 'kaizen', 'Bringcola', '09876543211', 'admin', 1, 0, NULL, 1, NULL, NULL, '2026-11-09 08:40:58', '2026-11-09 08:50:32', '2026-11-09 08:40:46', '2026-11-09 08:50:32'),
+	(2, 'staff@gmail.com', 'staff@gmail.com', '$2y$12$Ol/fxXabk8ktYAciDhvYkuvqnZd2EaPOdTAYRDjqkxm2rvXBSL1iK', 'kaizen', 'Bringcola', '09876543211', 'staff', 1, 0, NULL, 1, NULL, NULL, '2026-11-09 08:51:57', '2026-11-09 08:57:07', '2026-11-09 08:51:46', '2026-11-09 08:57:07');
 
 -- Dumping structure for table phpframecore.user_secret_questions
 CREATE TABLE IF NOT EXISTS `user_secret_questions` (
@@ -101,8 +107,19 @@ CREATE TABLE IF NOT EXISTS `user_secret_questions` (
   CONSTRAINT `fk_usq_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table phpframecore.user_secret_questions: ~0 rows (approximately)
+-- Dumping data for table phpframecore.user_secret_questions: ~10 rows (approximately)
 DELETE FROM `user_secret_questions`;
+INSERT INTO `user_secret_questions` (`id`, `user_id`, `question_id`, `answer`, `created_at`) VALUES
+	(1, 1, 1, 'a1', '2026-11-09 08:40:46'),
+	(2, 1, 2, 'a2', '2026-11-09 08:40:46'),
+	(3, 1, 3, 'a3', '2026-11-09 08:40:46'),
+	(4, 1, 4, 'a4', '2026-11-09 08:40:46'),
+	(5, 1, 5, 'a5', '2026-11-09 08:40:46'),
+	(6, 2, 1, 'a6', '2026-11-09 08:51:46'),
+	(7, 2, 2, 'a7', '2026-11-09 08:51:46'),
+	(8, 2, 3, 'a8', '2026-11-09 08:51:46'),
+	(9, 2, 4, 'a9', '2026-11-09 08:51:46'),
+	(10, 2, 5, 'a10', '2026-11-09 08:51:46');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

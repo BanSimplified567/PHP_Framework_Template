@@ -10,7 +10,7 @@ PHP_Framecore is a simple PHP framework designed for small to medium-sized web a
 
 - **MVC-like Architecture:** Separation of concerns with controllers, views, and a data access layer.
 - **Action-Based Routing:** A simple routing system managed through a single front-controller (`index.php`).
-- **Role-Based Access Control (RBAC):** Built-in support for multiple user roles (e.g., admin, staff, cashier) with permission handling.
+- **Role-Based Access Control (RBAC):** Built-in support for multiple user roles (e.g., admin, staff, user) with permission handling.
 - **Environment-Based Configuration:** Uses a `.env` file to manage environment-specific settings like database credentials.
 - **Database Abstraction:** Utilizes PHP's PDO for database connectivity, supporting MySQL.
 - **Basic Templating:** A simple view rendering system with a base layout structure.
