@@ -2,5 +2,4 @@
 config/.env
 reservation.sql
 .app
-database
 /vendor/
